@@ -1,0 +1,2313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Movie Booking Saga</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f8fafc;
+    --surface-2: #f1f5f9;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --muted: #475569;
+    --faint: #64748b;
+    --blue: #1d6cf2;
+    --blue-glow: #2f8cff;
+    --green: #22c55e;
+    --green-text: #15803d;
+    --teal: #10a37f;
+    --purple: #8b5cf6;
+    --yellow: #d97706;
+    --red: #ef4444;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.65 var(--sans);
+  }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, pre, .mono { font-family: var(--mono); }
+  code {
+    font-size: 0.86em;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    overflow-wrap: anywhere;
+  }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  pre code { background: none; border: 0; padding: 0; font-size: inherit; }
+
+  .layout { display: grid; grid-template-columns: 270px minmax(0, 1fr); max-width: 1440px; margin: 0 auto; }
+  nav.toc {
+    position: sticky; top: 0; align-self: start;
+    height: 100vh; overflow-y: auto;
+    padding: 28px 18px 40px 24px;
+    border-right: 1px solid var(--border);
+    font-size: 13.5px;
+  }
+  nav.toc .brand { font-family: var(--mono); font-weight: 700; letter-spacing: 1px; font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+  nav.toc li { margin: 2px 0; }
+  nav.toc li a { display: block; padding: 4px 8px; border-radius: 6px; color: var(--text); }
+  nav.toc li a:hover { background: var(--surface-2); text-decoration: none; }
+  nav.toc li.sub a { padding-left: 22px; color: var(--muted); font-size: 13px; }
+
+  main { padding: 36px 48px 80px; min-width: 0; }
+  section { margin: 0 0 64px; scroll-margin-top: 20px; }
+  h1 { font-size: 34px; line-height: 1.2; margin: 0 0 12px; letter-spacing: -0.5px; }
+  h2 {
+    font-size: 24px; margin: 0 0 16px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--border); letter-spacing: -0.2px;
+  }
+  h2 .num { font-family: var(--mono); color: var(--blue); margin-right: 10px; }
+  h3 { font-size: 18px; margin: 28px 0 10px; }
+  h4 { font-size: 15px; margin: 20px 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  p { margin: 0 0 12px; }
+  .lede { color: var(--muted); font-size: 17px; max-width: 900px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 6px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px;
+    border: 1px solid var(--border); background: var(--surface);
+    border-radius: 999px; padding: 4px 11px; color: var(--muted);
+  }
+  .chip b { color: var(--text); font-weight: 600; }
+
+  .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px 18px;
+  }
+  .card h3 { margin-top: 0; font-size: 16px; display: flex; align-items: center; gap: 10px; }
+  .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+  .card ul { margin: 6px 0 0; padding-left: 18px; }
+  .card li { margin: 3px 0; }
+
+  .table-wrap { overflow-x: auto; margin: 10px 0 18px; border: 1px solid var(--border); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--border); }
+  th { background: var(--surface-2); color: var(--muted); font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.6px; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td code { white-space: nowrap; }
+  td.n {
+    font-family: var(--mono); font-weight: 700; width: 46px; text-align: center;
+  }
+  .badge-n {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 26px; height: 26px; padding: 0 6px; border-radius: 999px;
+    background: var(--blue); color: #fff; font: 700 12.5px var(--mono);
+    border: 2px solid var(--blue);
+  }
+  .badge-n.y { background: #facc15; color: #000; border-color: #facc15; }
+  .badge-n.r { background: var(--red); border-color: var(--red); }
+
+  .diagram {
+    background: #ffffff; border: 1px solid var(--border); border-radius: 12px;
+    padding: 10px; margin: 14px 0 6px; overflow-x: auto;
+  }
+  .diagram svg { display: block; width: 100%; min-width: 760px; height: auto; }
+  .caption { color: var(--faint); font-size: 13px; margin: 4px 0 18px; }
+
+  .callout {
+    border-left: 3px solid var(--blue); background: var(--surface);
+    border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 14px 0;
+  }
+  .callout.ok { border-color: var(--green); }
+  .callout.warn { border-color: var(--yellow); }
+  .callout.bad { border-color: var(--red); }
+  .callout b:first-child { display: block; margin-bottom: 4px; }
+
+  details.qa {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    margin: 10px 0; padding: 0 16px;
+  }
+  details.qa summary {
+    cursor: pointer; padding: 13px 0; font-weight: 600; list-style: none;
+    display: flex; gap: 10px; align-items: baseline;
+  }
+  details.qa summary::-webkit-details-marker { display: none; }
+  details.qa summary::before { content: "+"; font-family: var(--mono); color: var(--blue); width: 14px; flex: none; }
+  details.qa[open] summary::before { content: "−"; }
+  details.qa .a { padding: 0 0 14px 24px; color: #334155; }
+  details.qa .a ul { margin: 6px 0; padding-left: 18px; }
+  .qa-group { font-family: var(--mono); font-size: 12px; color: var(--muted); letter-spacing: 1.2px; text-transform: uppercase; margin: 26px 0 6px; }
+
+  .ok-t { color: var(--green-text); }
+  .warn-t { color: #b45309; }
+  .bad-t { color: #dc2626; }
+  .muted { color: var(--muted); }
+
+  /* ---- SVG diagram styling ---- */
+  svg text { font-family: var(--mono); }
+  .lbl { font-size: 12.5px; fill: #0f172a; paint-order: stroke; stroke: #ffffff; stroke-width: 5px; stroke-linejoin: round; }
+  .lbl.ok { fill: #15803d; }
+  .lbl.warn { fill: #b45309; }
+  .lbl.bad { fill: #dc2626; }
+  .lbl.dim { fill: #64748b; font-size: 11px; }
+  .lbl.b { font-weight: 700; }
+  .flow { fill: none; stroke: #475569; stroke-width: 2.2; stroke-dasharray: 11 8; marker-end: url(#ah-w); }
+  .flow.solid { stroke-dasharray: none; }
+  .flow.y { stroke: #d97706; marker-end: url(#ah-y); }
+  .flow.r { stroke: #ef4444; marker-end: url(#ah-r); }
+  .flow.g { stroke: #22c55e; marker-end: url(#ah-g); }
+  .flow.dim { stroke: #94a3b8; marker-end: url(#ah-d); }
+  .flow.thin { stroke-width: 1.6; }
+  .nb circle { fill: #1d6cf2; stroke: #fff; stroke-width: 2.2; }
+  .nb text { fill: #fff; font-size: 13px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+  .nb.y circle { fill: #facc15; stroke: #facc15; }
+  .nb.y text { fill: #000; }
+  .nb.s text { font-size: 11px; }
+  .box { fill: #ffffff; stroke-width: 2; rx: 10; }
+  .box-t { font-size: 13px; fill: #0f172a; text-anchor: middle; font-weight: 600; }
+  .box-s { font-size: 11.5px; fill: #64748b; text-anchor: middle; }
+  .cd-st { font-size: 10.5px; fill: #64748b; text-anchor: middle; }
+  .cd-n { font-size: 13px; fill: #0f172a; text-anchor: middle; font-weight: 700; }
+  .cd-m { font-size: 11.5px; fill: #334155; }
+  .er-t { font-size: 13px; fill: #0f172a; font-weight: 700; }
+  .er-c { font-size: 11.5px; fill: #0f172a; }
+  .er-ty { font-size: 10.5px; fill: #64748b; text-anchor: end; }
+  .er-f { font-size: 9.5px; font-weight: 700; }
+  .flow.p { stroke: #8b5cf6; marker-end: url(#ah-p); }
+  .topic-glow { filter: drop-shadow(0 0 6px rgba(47, 140, 255, 0.45)); }
+
+  @media (max-width: 1000px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.toc { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+    main { padding: 24px 16px 60px; }
+    .grid-3 { grid-template-columns: 1fr; }
+    h1 { font-size: 27px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Shared SVG definitions (markers, icons, broker skeleton) used by every diagram -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="ah-w" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker>
+    <marker id="ah-y" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker>
+    <marker id="ah-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ef4444"/></marker>
+    <marker id="ah-g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#22c55e"/></marker>
+    <marker id="ah-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8b5cf6"/></marker>
+    <marker id="ah-d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
+
+    <!-- stacked server icon, colour comes from the `color` attribute -->
+    <symbol id="srv" viewBox="0 0 140 90">
+      <rect x="0" y="0" width="140" height="24" rx="6" fill="currentColor"/>
+      <rect x="0" y="33" width="140" height="24" rx="6" fill="currentColor"/>
+      <rect x="0" y="66" width="140" height="24" rx="6" fill="currentColor"/>
+      <g fill="#fff"><circle cx="16" cy="12" r="4"/><circle cx="16" cy="45" r="4"/><circle cx="16" cy="78" r="4"/></g>
+      <g stroke="#fff" stroke-width="2" stroke-linecap="round" opacity="0.9">
+        <path d="M98 7h28M98 12h28M98 17h28"/><path d="M98 40h28M98 45h28M98 50h28"/><path d="M98 73h28M98 78h28M98 83h28"/>
+      </g>
+    </symbol>
+
+    <!-- envelope -->
+    <symbol id="env" viewBox="0 0 24 18">
+      <rect x="0" y="0" width="24" height="18" rx="3" fill="#1d8cff"/>
+      <path d="M2 3 L12 10 L22 3" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linejoin="round"/>
+    </symbol>
+
+    <!-- kafka topic box with three envelopes -->
+    <symbol id="topic" viewBox="0 0 170 58">
+      <rect x="1.5" y="1.5" width="167" height="55" rx="10" fill="#eff6ff" stroke="#2f8cff" stroke-width="2.5"/>
+      <use href="#env" x="40" y="20" width="24" height="18"/>
+      <use href="#env" x="73" y="20" width="24" height="18"/>
+      <use href="#env" x="106" y="18" width="24" height="18"/>
+    </symbol>
+
+    <!-- small DLT topic (red) -->
+    <symbol id="topic-dlt" viewBox="0 0 170 58">
+      <rect x="1.5" y="1.5" width="167" height="55" rx="10" fill="#fef2f2" stroke="#ef4444" stroke-width="2.5"/>
+      <use href="#env" x="40" y="20" width="24" height="18"/>
+      <use href="#env" x="73" y="20" width="24" height="18"/>
+      <use href="#env" x="106" y="18" width="24" height="18"/>
+    </symbol>
+
+    <!-- check / cross badges -->
+    <symbol id="ok" viewBox="0 0 26 26">
+      <circle cx="13" cy="13" r="12" fill="#22c55e"/>
+      <path d="M7.5 13.5 L11.5 17.5 L18.5 9" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="bad" viewBox="0 0 26 26">
+      <circle cx="13" cy="13" r="12" fill="#ef4444"/>
+      <path d="M8.5 8.5 L17.5 17.5 M17.5 8.5 L8.5 17.5" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+    </symbol>
+
+    <!-- database cylinder, outline colour from the `color` attribute -->
+    <symbol id="db" viewBox="0 0 140 100">
+      <path d="M2 14 V86 A68 12 0 0 0 138 86 V14" fill="#ffffff" stroke="currentColor" stroke-width="2.5"/>
+      <ellipse cx="70" cy="14" rx="68" ry="12" fill="#f1f5f9" stroke="currentColor" stroke-width="2.5"/>
+    </symbol>
+
+    <!-- the common picture: broker with 3 topics + 3 services -->
+    <symbol id="skeleton" viewBox="0 0 1000 540">
+      <rect x="360" y="40" width="280" height="470" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 5"/>
+      <text x="500" y="70" text-anchor="middle" fill="#0f172a" font-size="15" font-weight="700" letter-spacing="2" font-family="JetBrains Mono, monospace">MESSAGE BROKER SYSTEM</text>
+      <text x="500" y="90" text-anchor="middle" fill="#64748b" font-size="11" font-family="JetBrains Mono, monospace">Kafka · Confluent Cloud</text>
+
+      <g class="topic-glow">
+        <use href="#topic" x="415" y="110" width="170" height="58"/>
+        <use href="#topic" x="415" y="255" width="170" height="58"/>
+        <use href="#topic" x="415" y="400" width="170" height="58"/>
+      </g>
+      <g fill="#0f172a" font-size="13" text-anchor="middle" font-family="JetBrains Mono, monospace">
+        <text x="500" y="190">movie-booking-events</text>
+        <text x="500" y="335">seat-reserved-topic</text>
+        <text x="500" y="480">payment-events</text>
+      </g>
+
+      <use href="#srv" x="60" y="250" width="140" height="90" color="#1d6cf2"/>
+      <use href="#srv" x="800" y="90" width="140" height="90" color="#10a37f"/>
+      <use href="#srv" x="800" y="380" width="140" height="90" color="#8b5cf6"/>
+      <g text-anchor="middle" font-family="JetBrains Mono, monospace">
+        <text x="130" y="370" fill="#0f172a" font-size="16" font-weight="700">Booking</text>
+        <text x="130" y="388" fill="#64748b" font-size="11">:9191 · MySQL</text>
+        <text x="870" y="210" fill="#0f172a" font-size="16" font-weight="700">Seat Inventory</text>
+        <text x="870" y="228" fill="#64748b" font-size="11">:9292 · MySQL</text>
+        <text x="870" y="500" fill="#0f172a" font-size="16" font-weight="700">Payment</text>
+        <text x="870" y="518" fill="#64748b" font-size="11">:9393 · no DB</text>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="layout">
+  <nav class="toc" aria-label="Contents">
+    <div class="brand">SAGA · CHOREOGRAPHY</div>
+    <ol>
+      <li><a href="#overview">1. Overview</a></li>
+      <li><a href="#why-saga">2. Why a saga</a></li>
+      <li><a href="#flow-happy">3. Flow A · Happy path</a></li>
+      <li class="sub"><a href="#worked-example">3.1 Worked example (real run)</a></li>
+      <li><a href="#flow-payment-failed">4. Flow B · Payment failed</a></li>
+      <li><a href="#flow-no-seats">5. Flow C · Seats unavailable</a></li>
+      <li><a href="#flow-timeout">6. Flow D · Saga timeout</a></li>
+      <li><a href="#reliability">7. Reliability building blocks</a></li>
+      <li class="sub"><a href="#outbox">7.1 Transactional outbox</a></li>
+      <li class="sub"><a href="#eos">7.2 Kafka transactions (EOS)</a></li>
+      <li class="sub"><a href="#ack">7.3 Acknowledgment</a></li>
+      <li class="sub"><a href="#retry-dlt">7.4 Retry, poison &amp; DLT</a></li>
+      <li class="sub"><a href="#idempotency">7.5 Idempotency</a></li>
+      <li class="sub"><a href="#locking">7.6 Concurrency &amp; locking</a></li>
+      <li class="sub"><a href="#optimistic-locking">7.6.1 How @Version works</a></li>
+      <li class="sub"><a href="#pessimistic-locking">7.6.2 Pessimistic locking</a></li>
+      <li class="sub"><a href="#state">7.7 State machines</a></li>
+      <li class="sub"><a href="#db-per-service">7.8 Database per service</a></li>
+      <li class="sub"><a href="#api-errors">7.9 API error handling</a></li>
+      <li><a href="#scenarios">8. Failure scenario matrix</a></li>
+      <li><a href="#config">9. Configuration reference</a></li>
+      <li><a href="#run">10. Run &amp; demo</a></li>
+      <li><a href="#interview">11. Interview questions</a></li>
+      <li><a href="#gaps">12. Known gaps &amp; next steps</a></li>
+      <li><a href="#data-model">13. Data model (ER)</a></li>
+      <li><a href="#class-diagrams">14. Class diagrams</a></li>
+      <li><a href="#load-simulator">15. Concurrency demo (simulator)</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <!-- ============================================================ 1 -->
+    <section id="overview">
+      <h1>Movie Booking Saga: Choreography with Kafka</h1>
+      <p class="lede">Three Spring Boot services book cinema seats without a distributed transaction. Each service commits its own local transaction and announces the result as an event. The next service reacts to that event. When a step fails, earlier steps are undone by <em>compensating</em> actions.</p>
+      <div class="chips">
+        <span class="chip"><b>Spring Boot</b> 3.5.7</span>
+        <span class="chip"><b>Java</b> 21</span>
+        <span class="chip"><b>spring-kafka</b> 3.3</span>
+        <span class="chip"><b>Kafka</b> Confluent Cloud</span>
+        <span class="chip"><b>MySQL</b> database per service</span>
+        <span class="chip"><b>Swagger</b> springdoc 2.8.9</span>
+      </div>
+
+      <h3>Services</h3>
+      <div class="grid-3">
+        <div class="card">
+          <h3><span class="dot" style="background:var(--blue)"></span>Booking service</h3>
+          <ul>
+            <li>Port <code>9191</code>, MySQL <code>booking_db</code></li>
+            <li>REST <code>POST /booking-service/bookSeat</code></li>
+            <li>REST <code>GET /booking-service/bookings/{id}</code></li>
+            <li>Owns the booking and its saga status</li>
+            <li>Outbox + relay, Idempotency-Key</li>
+            <li>Consumes <code>seat-reserved-topic</code>, <code>payment-events</code></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3><span class="dot" style="background:var(--teal)"></span>Seat inventory service</h3>
+          <ul>
+            <li>Port <code>9292</code>, MySQL <code>seat_inventory_db</code></li>
+            <li>Locks seats, reserves them, releases them</li>
+            <li>REST <code>GET /seat-inventory-service/seats</code> (read only)</li>
+            <li>Optimistic locking (<code>@Version</code>)</li>
+            <li>Lock expiry scheduler (saga timeout)</li>
+            <li>Consumes <code>movie-booking-events</code>, <code>payment-events</code></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3><span class="dot" style="background:var(--purple)"></span>Payment service</h3>
+          <ul>
+            <li>Port <code>9393</code>, no database</li>
+            <li>Simulated gateway: <code>amount &gt; 2000</code> fails</li>
+            <li>Failure simulator (dev profile)</li>
+            <li>Pure Kafka read → process → write (exactly-once)</li>
+            <li>Consumes <code>seat-reserved-topic</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Topics</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Topic</th><th>Producer</th><th>Event</th><th>Consumers (group)</th><th>Dead letter topic</th></tr></thead>
+        <tbody>
+          <tr><td><code>movie-booking-events</code></td><td>Booking (outbox relay)</td><td><code>BookingCreatedEvent</code></td><td>Seat inventory (<code>seat-event-group</code>)</td><td><code>movie-booking-events-dlt</code></td></tr>
+          <tr><td><code>seat-reserved-topic</code></td><td>Seat inventory</td><td><code>SeatReservedEvent</code></td><td>Payment (<code>payment-event-group</code>), Booking (<code>movie-booking-group</code>)</td><td><code>seat-reserved-topic-dlt</code></td></tr>
+          <tr><td><code>payment-events</code></td><td>Payment</td><td><code>BookingPaymentEvent</code></td><td>Seat inventory (<code>seat-event-group</code>), Booking (<code>movie-booking-group</code>)</td><td><code>payment-events-dlt</code></td></tr>
+          <tr><td><code>booking-request-dlt</code></td><td>Booking (<code>BookingLoadSimulator</code>)</td><td><code>FailedBookingRequest</code></td><td>Booking <code>DeadLetterListener</code> (<code>booking-service-dlt-group</code>)</td><td>(is itself a DLT, see <a href="#load-simulator">15</a>)</td></tr>
+        </tbody>
+      </table></div>
+      <p class="muted">All topics have 3 partitions and replication factor 3 (Confluent Cloud's minimum). Every event is keyed by <code>bookingId</code>, so all events of one booking land on the same partition of a topic and stay in order there.</p>
+
+      <h3>Events (shared in <code>movie-booking-commons</code>)</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Event</th><th>Fields</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><code>BookingCreatedEvent</code></td><td><code>bookingId, userId, showId, seatIds, amount</code></td><td>A booking was saved as PENDING; please lock these seats.</td></tr>
+          <tr><td><code>SeatReservedEvent</code></td><td><code>bookingId, reserved, amount</code></td><td><code>reserved=true</code>: seats are locked, go ahead and charge. <code>reserved=false</code>: seats couldn't be locked, or were released (payment failed or lock expired).</td></tr>
+          <tr><td><code>BookingPaymentEvent</code></td><td><code>bookingId, paymentCompleted, amount</code></td><td>Payment result: success or failure.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- ============================================================ 2 -->
+    <section id="why-saga">
+      <h2><span class="num">02</span>Why a saga</h2>
+      <p>A booking touches two databases (booking, seat inventory) and an external payment step. A single ACID transaction across them would need two-phase commit (XA). That's slow, holds locks across services, blocks when the coordinator dies, and Kafka doesn't take part in XA anyway. A <b>saga</b> splits the work into local transactions. Each local transaction publishes an event, and each step that can be undone has a <b>compensating transaction</b>.</p>
+
+      <div class="table-wrap"><table>
+        <thead><tr><th>Step (local transaction)</th><th>Service</th><th>Compensation</th></tr></thead>
+        <tbody>
+          <tr><td>Create booking (PENDING)</td><td>Booking</td><td>Mark booking FAILED</td></tr>
+          <tr><td>Lock seats (LOCKED + <code>lockedUntil</code>)</td><td>Seat inventory</td><td>Release seats (AVAILABLE)</td></tr>
+          <tr><td>Charge payment</td><td>Payment</td><td>Refund (only logged today, see <a href="#gaps">gaps</a>)</td></tr>
+          <tr><td>Reserve seats (RESERVED), confirm booking</td><td>Seat inventory, Booking</td><td>(final step, the pivot)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Choreography vs orchestration</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th></th><th>Choreography (this project)</th><th>Orchestration</th></tr></thead>
+        <tbody>
+          <tr><td>Who decides the next step</td><td>Each service reacts to events, with no central brain</td><td>An orchestrator sends commands and waits for replies</td></tr>
+          <tr><td>Coupling</td><td>Loose: services only know topics</td><td>Services know the orchestrator's commands</td></tr>
+          <tr><td>Where saga state lives</td><td>Spread out (booking status, seat status)</td><td>In one place (the orchestrator's saga instance)</td></tr>
+          <tr><td>Debugging</td><td>Harder: you follow events across services</td><td>Easier: one place shows the whole saga</td></tr>
+          <tr><td>Good for</td><td>Few steps, simple flows</td><td>Many steps, branching, timeouts, human tasks (Temporal, Camunda)</td></tr>
+          <tr><td>Risk</td><td>Cyclic event dependencies, nobody owns the whole flow</td><td>The orchestrator becomes a bottleneck or a single point of failure</td></tr>
+        </tbody>
+      </table></div>
+      <div class="callout"><b>Semantic lock</b>Sagas have no isolation: other transactions see intermediate states. The <code>LOCKED</code> seat status is a <em>semantic lock</em>, the standard countermeasure. It marks the seat as "in a saga, don't touch" until the saga finishes (RESERVED) or compensates (AVAILABLE).</div>
+    </section>
+
+    <!-- ============================================================ 3 -->
+    <section id="flow-happy">
+      <h2><span class="num">03</span>Flow A: happy path (booking confirmed)</h2>
+      <p>The user books seats and everything succeeds. Dashed arrows are events, numbers give the order. Steps <b>4b</b>, <b>6</b> and <b>7</b> are consumers reading the same event in different groups, so they run in parallel.</p>
+
+      <div class="diagram">
+        <svg viewBox="0 0 1000 540" role="img" aria-labelledby="dA-t">
+          <title id="dA-t">Happy path: booking created, seats locked, payment processed, booking confirmed</title>
+          <use href="#skeleton" x="0" y="0" width="1000" height="540"/>
+          <text x="130" y="200" class="lbl" text-anchor="middle">User books seats</text>
+          <path d="M130 210 V245" class="flow solid"/>
+
+          <path d="M205 275 L410 152" class="flow"/>
+          <path d="M588 139 L795 128" class="flow"/>
+          <path d="M795 165 L592 276" class="flow"/>
+          <path d="M592 292 L795 410" class="flow"/>
+          <path d="M410 290 L207 300" class="flow thin"/>
+          <path d="M795 440 L592 432" class="flow"/>
+          <path d="M410 440 L207 335" class="flow"/>
+          <path d="M588 412 L810 186" class="flow thin"/>
+
+          <text x="300" y="183" class="lbl ok" text-anchor="middle">BookingCreatedEvent</text>
+          <text x="300" y="199" class="lbl dim" text-anchor="middle">(via outbox relay)</text>
+          <g class="nb"><circle cx="307" cy="213" r="13"/><text x="307" y="213">1</text></g>
+
+          <text x="691" y="117" class="lbl" text-anchor="middle">consumes · lock seats</text>
+          <g class="nb"><circle cx="691" cy="133" r="13"/><text x="691" y="133">2</text></g>
+
+          <text x="682" y="203" class="lbl ok" text-anchor="end">SeatReservedEvent ✓</text>
+          <text x="674" y="222" class="lbl dim" text-anchor="end">reserved=true</text>
+          <g class="nb"><circle cx="693" cy="220" r="13"/><text x="693" y="220">3</text></g>
+
+          <text x="712" y="372" class="lbl" text-anchor="start">consumes · charge</text>
+          <g class="nb"><circle cx="693" cy="351" r="13"/><text x="693" y="351">4</text></g>
+
+          <text x="300" y="325" class="lbl" text-anchor="middle">consumes → SEATS_LOCKED</text>
+          <g class="nb s"><circle cx="308" cy="295" r="13"/><text x="308" y="295">4b</text></g>
+
+          <text x="693" y="465" class="lbl ok" text-anchor="middle">BookingPaymentEvent ✓</text>
+          <g class="nb"><circle cx="693" cy="436" r="13"/><text x="693" y="436">5</text></g>
+
+          <text x="288" y="418" class="lbl" text-anchor="middle">consumes → CONFIRMED</text>
+          <g class="nb"><circle cx="307" cy="387" r="13"/><text x="307" y="387">6</text></g>
+
+          <text x="742" y="272" class="lbl" text-anchor="start">consumes → RESERVED</text>
+          <g class="nb"><circle cx="721" cy="276" r="13"/><text x="721" y="276">7</text></g>
+
+          <use href="#ok" x="186" y="239" width="26" height="26"/>
+          <use href="#ok" x="926" y="79" width="26" height="26"/>
+          <use href="#ok" x="926" y="369" width="26" height="26"/>
+          <text x="880" y="322" class="lbl ok b" text-anchor="middle">✓ CONSISTENT</text>
+        </svg>
+      </div>
+      <p class="caption">Every service ends in a final state: the booking is CONFIRMED, the seats are RESERVED, and the payment is captured.</p>
+
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>What happens</th><th>Code</th></tr></thead>
+        <tbody>
+          <tr><td class="n"><span class="badge-n">1</span></td><td><code>POST /bookSeat</code> with an <code>Idempotency-Key</code> header. In <b>one MySQL transaction</b> the booking row is saved as <code>PENDING</code> and an <code>outbox_event</code> row holds the <code>BookingCreatedEvent</code>. <code>OutboxRelay</code> (every 1s) publishes it in a Kafka transaction, then sets <code>sentAt</code>.</td><td><code>BookingController</code>, <code>BookingService.bookSeats</code>, <code>BookingEventProducer</code>, <code>OutboxRelay</code></td></tr>
+          <tr><td class="n"><span class="badge-n">2</span></td><td>Seat inventory consumes it. It validates the event (bad data counts as poison), checks <code>processed_event</code>, and checks that every requested seat exists and is <code>AVAILABLE</code>. Then it sets them to <code>LOCKED</code> with <code>currentBookingId</code> and <code>lockedUntil = now + 5m</code>. <code>@Version</code> guards against concurrent bookings.</td><td><code>SeatInventoryListener</code>, <code>SeatInventoryService.handleBooking</code></td></tr>
+          <tr><td class="n"><span class="badge-n">3</span></td><td>It publishes <code>SeatReservedEvent(reserved=true)</code> in the listener's Kafka transaction, together with the consumed offset.</td><td><code>SeatReserveProducer</code></td></tr>
+          <tr><td class="n"><span class="badge-n">4</span></td><td>Payment consumes it and charges. <code>amount ≤ 2000</code> succeeds; <code>&gt; 2000</code> fails (that's Flow B).</td><td><code>SeatReserveEventConsumer</code>, <code>PaymentService.processPayment</code></td></tr>
+          <tr><td class="n"><span class="badge-n">4b</span></td><td>Booking also consumes it and moves PENDING → <code>SEATS_LOCKED</code>.</td><td><code>MovieBookingListener.consumeSeatReserveEvents</code></td></tr>
+          <tr><td class="n"><span class="badge-n">5</span></td><td>Payment publishes <code>BookingPaymentEvent(paymentCompleted=true)</code>. Reading the input, writing the output and committing the offset happen in one Kafka transaction (exactly-once).</td><td><code>PaymentEventsProducer</code></td></tr>
+          <tr><td class="n"><span class="badge-n">6</span></td><td>Booking consumes it and moves to <code>CONFIRMED</code>. This is allowed even from PENDING, in case the payment result arrives before step 4b.</td><td><code>MovieBookingListener.consumePaymentEvents</code>, <code>BookingStatus.canMoveTo</code></td></tr>
+          <tr><td class="n"><span class="badge-n">7</span></td><td>Seat inventory consumes it and moves its <code>LOCKED</code> seats to <code>RESERVED</code>, clearing <code>lockedUntil</code>.</td><td><code>PaymentStatusListener</code>, <code>SeatInventoryService.confirmSeatsOnPaymentSuccess</code></td></tr>
+        </tbody>
+      </table></div>
+
+      <h3 id="worked-example">3.1 Worked example: a real booking traced end to end</h3>
+      <p>A real run of this system (booking <code>9f401c50-cabe-4dfe-b7f4-7bc985e933ff</code>, seat <b>B4</b> of <code>SHOW_202</code>, amount 1000). The request:</p>
+<pre><code>curl -X POST http://localhost:9191/booking-service/bookSeat \
+  -H 'Idempotency-Key: df0a3f48-af50-45d0-94f9-70a69494a0b2' -H 'Content-Type: application/json' \
+  -d '{"showId":"SHOW_202","seatIds":["B4"],"userId":"Kashi","amount":1000}'
+
+{ "reservationId": "9f401c50-cabe-4dfe-b7f4-7bc985e933ff", "status": "PENDING" }</code></pre>
+      <p>The response says <b>PENDING</b> because the POST only saves the booking and its outbox row; everything else happens asynchronously over Kafka. Timeline reconstructed from the two databases (UTC):</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Time</th><th>Step</th><th>Where you can see it</th></tr></thead>
+        <tbody>
+          <tr><td class="n"><span class="badge-n">1</span></td><td><code>09:27:27</code></td><td>Booking saved as <code>PENDING</code> + outbox row; API returns <code>PENDING</code></td><td><code>booking_db.booking</code>, <code>booking_db.outbox_event</code></td></tr>
+          <tr><td class="n"><span class="badge-n">1</span></td><td><code>09:27:59</code></td><td>Outbox relay sends <code>BookingCreatedEvent</code> to Kafka</td><td><code>outbox_event.sentAt</code></td></tr>
+          <tr><td class="n"><span class="badge-n">2–3</span></td><td><code>~09:28:00</code></td><td>Seat inventory locks B4 and publishes <code>SeatReservedEvent(reserved=true)</code></td><td><code>seat_inventory_db.processed_event</code>: <code>BOOKING_CREATED:…</code></td></tr>
+          <tr><td class="n"><span class="badge-n">4b</span></td><td><code>09:28:02</code></td><td>Booking → <code>SEATS_LOCKED</code></td><td><code>booking_processed_event</code>: <code>SEATS_LOCKED:…</code></td></tr>
+          <tr><td class="n"><span class="badge-n">4–5, 7</span></td><td><code>~09:28:15</code></td><td>Payment of 1000 (≤ 2000) succeeds; seat B4 → <code>RESERVED</code></td><td><code>seat_inventory_db.processed_event</code>: <code>PAYMENT_COMPLETED:…</code></td></tr>
+          <tr><td class="n"><span class="badge-n">6</span></td><td><code>09:28:15</code></td><td>Booking → <code>CONFIRMED</code></td><td><code>booking_processed_event</code>: <code>PAYMENT_COMPLETED:…</code></td></tr>
+        </tbody>
+      </table></div>
+      <p>The step numbers match the Flow A diagram above. Both services recorded <code>PAYMENT_COMPLETED</code>, each in <b>its own</b> idempotency table. That's exactly what failed before the database split (see <a href="#db-per-service">7.8</a>).</p>
+
+      <h4>Watch it yourself</h4>
+<pre><code># poll the status (new endpoint): PENDING → SEATS_LOCKED → CONFIRMED (or FAILED)
+curl http://localhost:9191/booking-service/bookings/9f401c50-cabe-4dfe-b7f4-7bc985e933ff
+{ "reservationId": "9f401c50-cabe-4dfe-b7f4-7bc985e933ff", "status": "CONFIRMED" }
+
+# or trace every step in the databases
+mysql -uroot -proot -e "
+  select status, createdAt from booking_db.booking where bookingCode='&lt;id&gt;';
+  select createdAt, sentAt from booking_db.outbox_event where aggregateId='&lt;id&gt;';
+  select * from booking_db.booking_processed_event where eventKey like '%&lt;id&gt;';
+  select seatNumber, status, lockedUntil from seat_inventory_db.seat_inventory where currentBookingId='&lt;id&gt;';
+  select * from seat_inventory_db.processed_event where eventKey like '%&lt;id&gt;';"</code></pre>
+      <div class="callout warn"><b>Why did the outbox wait 32 seconds?</b>The relay polls every second, but this was the first event after booking-service started. The first transactional send has to initialise the Kafka producer transaction with Confluent Cloud (find the coordinator, register the <code>transactional.id</code>), which can take a while. Later events go out within about a second. If <code>sentAt - createdAt</code> stays high, look at the relay and Kafka connectivity. "Outbox age" is a good metric to alert on.</div>
+    </section>
+
+    <!-- ============================================================ 4 -->
+    <section id="flow-payment-failed">
+      <h2><span class="num">04</span>Flow B: payment failed (compensation)</h2>
+      <p>Steps 1–4 of the happy path already ran, so the seats are LOCKED. Now the payment is declined. Solid yellow arrows are the compensation flow, like the "transaction failed" picture.</p>
+
+      <div class="diagram">
+        <svg viewBox="0 0 1000 540" role="img" aria-labelledby="dB-t">
+          <title id="dB-t">Payment failed: seats released, booking failed</title>
+          <use href="#skeleton" x="0" y="0" width="1000" height="540"/>
+          <text x="20" y="26" class="lbl dim" text-anchor="start">before step 1: happy-path steps 1–4 ran → seats LOCKED, booking SEATS_LOCKED</text>
+
+          <path d="M795 440 L592 432" class="flow solid y"/>
+          <path d="M588 412 L810 186" class="flow solid y"/>
+          <path d="M795 165 L592 276" class="flow solid y"/>
+          <path d="M410 290 L207 300" class="flow solid y"/>
+          <path d="M410 440 L207 335" class="flow solid y thin"/>
+          <path d="M592 292 L795 410" class="flow dim thin"/>
+
+          <text x="700" y="465" class="lbl warn b" text-anchor="middle">PaymentFailed</text>
+          <text x="700" y="481" class="lbl dim" text-anchor="middle">BookingPaymentEvent(paymentCompleted=false)</text>
+          <g class="nb y"><circle cx="693" cy="436" r="13"/><text x="693" y="436">1</text></g>
+
+          <text x="742" y="266" class="lbl warn" text-anchor="start">consumes → release seats</text>
+          <g class="nb y"><circle cx="721" cy="276" r="13"/><text x="721" y="276">2</text></g>
+
+          <text x="682" y="203" class="lbl warn b" text-anchor="end">SeatsReleased</text>
+          <text x="674" y="222" class="lbl dim" text-anchor="end">SeatReservedEvent(reserved=false)</text>
+          <g class="nb y"><circle cx="693" cy="220" r="13"/><text x="693" y="220">3</text></g>
+
+          <text x="300" y="325" class="lbl warn" text-anchor="middle">consumes → FAILED</text>
+          <g class="nb y"><circle cx="308" cy="295" r="13"/><text x="308" y="295">4</text></g>
+
+          <text x="288" y="418" class="lbl warn" text-anchor="middle">consumes → FAILED</text>
+          <g class="nb y s"><circle cx="307" cy="387" r="13"/><text x="307" y="387">1b</text></g>
+
+          <text x="712" y="372" class="lbl dim" text-anchor="start">consumes · reserved=false → skip</text>
+          <g class="nb y s"><circle cx="693" cy="351" r="13"/><text x="693" y="351">3b</text></g>
+
+          <use href="#bad" x="926" y="369" width="26" height="26"/>
+          <use href="#ok" x="926" y="79" width="26" height="26"/>
+          <text x="880" y="322" class="lbl ok b" text-anchor="middle">✓ CONSISTENT</text>
+        </svg>
+      </div>
+      <p class="caption">After compensation: the seats are AVAILABLE again, the booking is FAILED, and nothing is charged.</p>
+
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>What happens</th><th>Code</th></tr></thead>
+        <tbody>
+          <tr><td class="n"><span class="badge-n y">1</span></td><td>Payment declines (<code>amount &gt; 2000</code>) and publishes <code>BookingPaymentEvent(paymentCompleted=false)</code>. This is a <em>business</em> failure (an event), not an exception. Exceptions are reserved for technical failures (see <a href="#retry-dlt">7.4</a>).</td><td><code>PaymentService.processPayment</code></td></tr>
+          <tr><td class="n"><span class="badge-n y">1b</span></td><td>Booking consumes the same event and moves to <code>FAILED</code> right away.</td><td><code>BookingService.handleBookingOnPaymentFailed</code></td></tr>
+          <tr><td class="n"><span class="badge-n y">2</span></td><td><b>Compensation:</b> seat inventory releases the booking's seats (AVAILABLE, <code>currentBookingId=null</code>, <code>lockedUntil=null</code>) and records <code>PAYMENT_FAILED:&lt;id&gt;</code> in <code>processed_event</code>.</td><td><code>SeatInventoryService.releaseSeatsOnPaymentFailure</code></td></tr>
+          <tr><td class="n"><span class="badge-n y">3</span></td><td>Seat inventory publishes <code>SeatReservedEvent(reserved=false, amount=0)</code>.</td><td><code>SeatReserveProducer</code></td></tr>
+          <tr><td class="n"><span class="badge-n y">3b</span></td><td>Payment also reads it, sees <code>reserved=false</code> and skips it, so nothing is charged.</td><td><code>SeatReserveEventConsumer</code></td></tr>
+          <tr><td class="n"><span class="badge-n y">4</span></td><td>Booking consumes it. It's already <code>FAILED</code> (step 1b), so the state machine ignores the transition. If 1b hasn't run yet, this moves it to FAILED. Either order gives the same result.</td><td><code>BookingService.moveBookingTo</code></td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- ============================================================ 5 -->
+    <section id="flow-no-seats">
+      <h2><span class="num">05</span>Flow C: seats unavailable</h2>
+      <p>Someone else already holds seat A1, or a seat number doesn't exist. The saga fails at the first step, before any money moves.</p>
+
+      <div class="diagram">
+        <svg viewBox="0 0 1000 540" role="img" aria-labelledby="dC-t">
+          <title id="dC-t">Seats unavailable: reservation failed, booking failed, payment skipped</title>
+          <use href="#skeleton" x="0" y="0" width="1000" height="540"/>
+          <text x="130" y="200" class="lbl" text-anchor="middle">User books seats</text>
+          <path d="M130 210 V245" class="flow solid"/>
+
+          <path d="M205 275 L410 152" class="flow"/>
+          <path d="M588 139 L795 128" class="flow"/>
+          <path d="M795 165 L592 276" class="flow solid y"/>
+          <path d="M410 290 L207 300" class="flow solid y"/>
+          <path d="M592 292 L795 410" class="flow dim thin"/>
+
+          <text x="300" y="183" class="lbl ok" text-anchor="middle">BookingCreatedEvent</text>
+          <g class="nb"><circle cx="307" cy="213" r="13"/><text x="307" y="213">1</text></g>
+          <text x="691" y="117" class="lbl" text-anchor="middle">consumes</text>
+          <g class="nb"><circle cx="691" cy="133" r="13"/><text x="691" y="133">2</text></g>
+          <text x="870" y="62" class="lbl bad" text-anchor="middle">A1 is not AVAILABLE</text>
+
+          <text x="682" y="203" class="lbl warn b" text-anchor="end">SeatReservedEvent ✗</text>
+          <text x="674" y="222" class="lbl dim" text-anchor="end">reserved=false</text>
+          <g class="nb y"><circle cx="693" cy="220" r="13"/><text x="693" y="220">3</text></g>
+
+          <text x="300" y="325" class="lbl warn" text-anchor="middle">consumes → FAILED</text>
+          <g class="nb y"><circle cx="308" cy="295" r="13"/><text x="308" y="295">4</text></g>
+
+          <text x="712" y="372" class="lbl dim" text-anchor="start">consumes → skip, no charge</text>
+          <g class="nb y s"><circle cx="693" cy="351" r="13"/><text x="693" y="351">4b</text></g>
+
+          <use href="#bad" x="926" y="79" width="26" height="26"/>
+          <text x="880" y="322" class="lbl ok b" text-anchor="middle">✓ CONSISTENT</text>
+        </svg>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>What happens</th></tr></thead>
+        <tbody>
+          <tr><td class="n"><span class="badge-n">1</span></td><td>Same as the happy path: the booking is PENDING and the event goes through the outbox.</td></tr>
+          <tr><td class="n"><span class="badge-n">2</span></td><td><code>handleBooking</code> finds a seat that isn't AVAILABLE, or fewer seats than requested (an unknown seat number counts as unavailable). Nothing is changed.</td></tr>
+          <tr><td class="n"><span class="badge-n y">3</span></td><td>It publishes <code>SeatReservedEvent(reserved=false, amount)</code>.</td></tr>
+          <tr><td class="n"><span class="badge-n y">4</span></td><td>Booking moves PENDING → FAILED.</td></tr>
+          <tr><td class="n"><span class="badge-n y">4b</span></td><td>Payment skips it (<code>reserved=false</code>).</td></tr>
+        </tbody>
+      </table></div>
+      <div class="callout warn"><b>Not the same as a poison message</b>"Seat taken" is a valid business outcome, so it becomes an event. A <code>BookingCreatedEvent</code> with no <code>bookingId</code>, <code>showId</code> or <code>seatIds</code> is bad data. It throws <code>PoisonMessageException</code> and goes straight to <code>movie-booking-events-dlt</code>.</div>
+    </section>
+
+    <!-- ============================================================ 6 -->
+    <section id="flow-timeout">
+      <h2><span class="num">06</span>Flow D: saga timeout (lock expiry)</h2>
+      <p>Payment never answers. It might be down, or its input sits in the DLT after the retries ran out. Without a timeout, the seats would stay LOCKED forever.</p>
+
+      <div class="diagram">
+        <svg viewBox="0 0 1000 540" role="img" aria-labelledby="dD-t">
+          <title id="dD-t">Saga timeout: expired seat lock released, booking failed</title>
+          <use href="#skeleton" x="0" y="0" width="1000" height="540"/>
+          <text x="20" y="26" class="lbl dim" text-anchor="start">before step 1: seats LOCKED (lockedUntil = now+5m), payment keeps failing → record in seat-reserved-topic-dlt</text>
+
+          <path d="M592 292 L795 410" class="flow solid r thin"/>
+          <text x="712" y="372" class="lbl bad" text-anchor="start">✗ retries exhausted → DLT</text>
+
+          <path d="M800 70 C 760 40, 700 40, 700 70" class="flow solid y thin"/>
+          <text x="870" y="56" class="lbl warn b" text-anchor="middle">⏱ SeatLockExpiryScheduler</text>
+          <text x="870" y="74" class="lbl dim" text-anchor="middle">every 30s · lockedUntil &lt; now</text>
+          <g class="nb y"><circle cx="760" cy="80" r="13"/><text x="760" y="80">1</text></g>
+
+          <path d="M795 165 L592 276" class="flow solid y"/>
+          <text x="682" y="203" class="lbl warn b" text-anchor="end">SeatsReleased</text>
+          <text x="674" y="222" class="lbl dim" text-anchor="end">SeatReservedEvent(reserved=false)</text>
+          <g class="nb y"><circle cx="693" cy="220" r="13"/><text x="693" y="220">2</text></g>
+
+          <path d="M410 290 L207 300" class="flow solid y"/>
+          <text x="300" y="325" class="lbl warn" text-anchor="middle">consumes → FAILED</text>
+          <g class="nb y"><circle cx="308" cy="295" r="13"/><text x="308" y="295">3</text></g>
+
+          <path d="M795 440 L592 432" class="flow dim thin"/>
+          <path d="M588 412 L810 186" class="flow dim thin"/>
+          <text x="693" y="465" class="lbl dim" text-anchor="middle">late PaymentProcessed?</text>
+          <g class="nb y s"><circle cx="693" cy="436" r="13"/><text x="693" y="436">4?</text></g>
+          <text x="742" y="266" class="lbl dim" text-anchor="start">seats NOT retaken → REFUND</text>
+
+          <use href="#bad" x="926" y="369" width="26" height="26"/>
+          <text x="880" y="322" class="lbl ok b" text-anchor="middle">✓ CONSISTENT</text>
+        </svg>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>What happens</th><th>Code</th></tr></thead>
+        <tbody>
+          <tr><td class="n"><span class="badge-n y">1</span></td><td>Every <code>seat.lock.sweep-interval</code> (30s), the scheduler finds seats that are <code>LOCKED</code> with <code>lockedUntil &lt; now</code> and groups them by booking. Each booking is released in its own transaction. The scheduler re-checks the rows first, because they may have been confirmed in the meantime. A failure for one booking is logged and retried on the next sweep, and doesn't stop the others.</td><td><code>SeatLockExpiryScheduler</code>, <code>SeatInventoryService.releaseExpiredLock</code></td></tr>
+          <tr><td class="n"><span class="badge-n y">2</span></td><td>It publishes <code>SeatReservedEvent(reserved=false)</code>. The Kafka send is synchronized with the database transaction and commits right after it.</td><td><code>SeatReserveProducer</code></td></tr>
+          <tr><td class="n"><span class="badge-n y">3</span></td><td>Booking moves SEATS_LOCKED → FAILED.</td><td><code>BookingService.moveBookingTo</code></td></tr>
+          <tr><td class="n"><span class="badge-n y">4?</span></td><td><b>Late payment race:</b> if the payment success arrives after the expiry, <code>confirmSeatsOnPaymentSuccess</code> finds no LOCKED seats. Someone else may already hold them, so it does <b>not</b> take them back. It logs <code>REFUND REQUIRED</code> and publishes <code>reserved=false</code>. That's why <code>CONFIRMED → FAILED</code> is an allowed transition.</td><td><code>SeatInventoryService.confirmSeatsOnPaymentSuccess</code></td></tr>
+        </tbody>
+      </table></div>
+      <div class="callout"><b>Two timeouts, one owner each</b>
+        <ul style="margin:4px 0 0;padding-left:18px">
+          <li><b>Seat inventory</b> owns the <code>SEATS_LOCKED</code> timeout through <code>seat.lock.ttl</code> (5m).</li>
+          <li><b>Booking</b> only fails bookings still <code>PENDING</code> after <code>booking.pending-timeout</code> (15m). In that case seat inventory never answered at all, for example because the <code>BookingCreatedEvent</code> went to the DLT.</li>
+          <li>Keep the booking timeout well above the seat lock TTL, so a slow but alive saga isn't failed by the wrong side.</li>
+        </ul>
+      </div>
+      <div class="callout warn"><b>Optimistic locking settles the race</b>The scheduler and a payment-success update can touch the same seat rows at the same moment. <code>@Version</code> makes one of them fail and retry. The scheduler retries on its next sweep; the listener retries through the error handler.</div>
+    </section>
+
+    <!-- ============================================================ 7 -->
+    <section id="reliability">
+      <h2><span class="num">07</span>Reliability building blocks</h2>
+      <p>The flows above only stay correct if messages aren't lost, aren't processed twice in a harmful way, and failures don't block or corrupt anything. These are the mechanisms, each with the problem it solves.</p>
+
+      <div class="table-wrap"><table>
+        <thead><tr><th>Problem</th><th>Mechanism</th><th>Where</th></tr></thead>
+        <tbody>
+          <tr><td>DB commit and Kafka send can diverge (dual write)</td><td>Transactional outbox + relay</td><td>booking-service</td></tr>
+          <tr><td>Consume → process → produce must be atomic within Kafka</td><td>Kafka transactions, <code>read_committed</code></td><td>all services</td></tr>
+          <tr><td>Commit the offset only after successful processing</td><td>Manual ack; offset sent inside the Kafka transaction</td><td>all listeners</td></tr>
+          <tr><td>Temporary outage (DB down, timeout)</td><td>Exponential backoff retry (1s, 2s, 4s)</td><td><code>DefaultErrorHandler</code></td></tr>
+          <tr><td>Bad data or a bug (poison message)</td><td>Non-retryable exception list → straight to DLT</td><td><code>DefaultErrorHandler</code> + <code>DeadLetterPublishingRecoverer</code></td></tr>
+          <tr><td>Unreadable JSON</td><td><code>ErrorHandlingDeserializer</code></td><td>application.yml</td></tr>
+          <tr><td>Redelivery repeats work</td><td><code>processed_event</code> table, state machine</td><td>booking, seat inventory</td></tr>
+          <tr><td>Client retries the POST</td><td><code>Idempotency-Key</code> header + unique column</td><td>booking-service</td></tr>
+          <tr><td>Two bookings take the same seat</td><td>Optimistic locking (<code>@Version</code>)</td><td>seat inventory</td></tr>
+          <tr><td>Saga stalls forever</td><td>Lock TTL + schedulers</td><td>seat inventory, booking</td></tr>
+          <tr><td>Services overwrite or misread each other's data</td><td>Database per service</td><td><code>booking_db</code>, <code>seat_inventory_db</code></td></tr>
+          <tr><td>Inconsistent or leaky API errors</td><td><code>GlobalExceptionHandler</code> → <code>ProblemDetail</code></td><td>booking-service</td></tr>
+        </tbody>
+      </table></div>
+
+      <!-- 7.1 -->
+      <h3 id="outbox">7.1 Transactional outbox</h3>
+      <p><b>Problem:</b> the old <code>bookSeats</code> saved the booking and then called Kafka. If the DB committed and Kafka failed, the event was lost and the saga never started. If Kafka was down, every booking request failed. You can't make "write MySQL" and "write Kafka" atomic directly.</p>
+      <p><b>Solution:</b> write the event into an <code>outbox_event</code> table <em>in the same MySQL transaction</em> as the booking. A separate relay publishes those rows to Kafka afterwards.</p>
+
+      <div class="diagram">
+        <svg viewBox="0 0 1000 370" role="img" aria-labelledby="dO-t">
+          <title id="dO-t">Transactional outbox: booking and event in one DB transaction, relay publishes to Kafka</title>
+          <rect x="20" y="40" width="150" height="62" class="box" stroke="#9ca3af"/>
+          <text x="95" y="67" class="box-t">Client</text>
+          <text x="95" y="86" class="box-s">app / UI / Swagger</text>
+
+          <rect x="240" y="40" width="200" height="62" class="box" stroke="#1d6cf2"/>
+          <text x="340" y="67" class="box-t">BookingController</text>
+          <text x="340" y="86" class="box-s">Idempotency-Key check</text>
+
+          <rect x="500" y="18" width="480" height="140" rx="10" fill="none" stroke="#94a3b8" stroke-dasharray="5 5"/>
+          <text x="740" y="38" text-anchor="middle" class="lbl b">ONE MySQL TRANSACTION · BookingService.bookSeats</text>
+          <rect x="520" y="58" width="210" height="80" class="box" stroke="#1d6cf2"/>
+          <text x="625" y="88" class="box-t">booking</text>
+          <text x="625" y="107" class="box-s">status = PENDING</text>
+          <text x="625" y="123" class="box-s">idempotency_key UNIQUE</text>
+          <rect x="752" y="58" width="210" height="80" class="box" stroke="#d97706"/>
+          <text x="857" y="88" class="box-t">outbox_event</text>
+          <text x="857" y="107" class="box-s">BookingCreatedEvent JSON</text>
+          <text x="857" y="123" class="box-s">sentAt = NULL</text>
+
+          <rect x="470" y="240" width="230" height="70" class="box" stroke="#10a37f"/>
+          <text x="585" y="268" class="box-t">OutboxRelay</text>
+          <text x="585" y="288" class="box-s">@Scheduled every 1s · 100 rows</text>
+
+          <g class="topic-glow"><use href="#topic" x="805" y="248" width="170" height="58"/></g>
+          <text x="890" y="328" text-anchor="middle" class="lbl">movie-booking-events</text>
+
+          <path d="M172 71 L236 71" class="flow solid"/>
+          <path d="M442 71 L516 90" class="flow solid"/>
+          <path d="M870 140 L702 252" class="flow"/>
+          <path d="M702 280 L801 278" class="flow solid g"/>
+          <path d="M560 238 L770 142" class="flow y thin"/>
+
+          <g class="nb"><circle cx="204" cy="71" r="13"/><text x="204" y="71">1</text></g>
+          <text x="204" y="122" class="lbl dim" text-anchor="middle">POST /bookSeat</text>
+          <g class="nb"><circle cx="479" cy="80" r="13"/><text x="479" y="80">2</text></g>
+          <text x="470" y="122" class="lbl dim" text-anchor="middle">save both</text>
+          <g class="nb"><circle cx="800" cy="187" r="13"/><text x="800" y="187">3</text></g>
+          <text x="818" y="218" class="lbl" text-anchor="start">poll unsent rows</text>
+          <g class="nb"><circle cx="752" cy="279" r="13"/><text x="752" y="279">4</text></g>
+          <text x="752" y="352" class="lbl ok" text-anchor="middle">send + COMMIT (Kafka tx)</text>
+          <g class="nb y"><circle cx="640" cy="202" r="13"/><text x="640" y="202">5</text></g>
+          <text x="560" y="196" class="lbl warn" text-anchor="end">UPDATE sentAt = now()</text>
+        </svg>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Failure point</th><th>Result</th><th>Why it's safe</th></tr></thead>
+        <tbody>
+          <tr><td>DB transaction fails at step 2</td><td>Neither the booking nor the event exists</td><td>Atomic local transaction</td></tr>
+          <tr><td>Kafka down at step 4</td><td>Rows stay <code>sentAt = NULL</code> and are retried every second. Bookings keep being accepted.</td><td>No Kafka call in the request path</td></tr>
+          <tr><td>Crash between 4 and 5</td><td>The row is published <b>again</b> on the next poll</td><td>At-least-once. Seat inventory's <code>BOOKING_CREATED:&lt;id&gt;</code> check absorbs the duplicate.</td></tr>
+          <tr><td>A row can't be rebuilt (corrupt JSON or class)</td><td>Logged and skipped; it stays visible in the table</td><td>Doesn't block the rest of the batch</td></tr>
+        </tbody>
+      </table></div>
+      <p class="muted">The relay rebuilds the event object (<code>Class.forName(eventType)</code>) before sending, so <code>JsonSerializer</code> adds the same <code>__TypeId__</code> header that consumers expect. <code>BookingEventProducer</code> uses <code>@Transactional(propagation = MANDATORY)</code>, so it can't write an outbox row outside a business transaction. Sent rows are deleted after <code>outbox.retention</code> (7 days).</p>
+
+      <!-- 7.2 -->
+      <h3 id="eos">7.2 Kafka transactions (exactly-once within Kafka)</h3>
+      <p>Setting <code>spring.kafka.producer.transaction-id-prefix</code> makes the producer transactional. Spring Boot then creates a <code>KafkaTransactionManager</code> and attaches it to every listener container. For each record, the container:</p>
+
+      <div class="diagram">
+        <svg viewBox="0 0 1000 600" role="img" aria-labelledby="dE-t">
+          <title id="dE-t">Sequence of a transactional listener: DB commit then Kafka commit of event and offset</title>
+          <g font-family="JetBrains Mono, monospace">
+            <rect x="20" y="20" width="150" height="48" class="box" stroke="#2f8cff"/><text x="95" y="49" class="box-t">input topic</text>
+            <rect x="215" y="20" width="170" height="48" class="box" stroke="#1d6cf2"/><text x="300" y="42" class="box-t">Listener container</text><text x="300" y="59" class="box-s">KafkaTransactionManager</text>
+            <rect x="425" y="20" width="170" height="48" class="box" stroke="#10a37f"/><text x="510" y="42" class="box-t">Listener + Service</text><text x="510" y="59" class="box-s">@Transactional (JPA)</text>
+            <rect x="645" y="20" width="150" height="48" class="box" stroke="#d97706"/><text x="720" y="49" class="box-t">MySQL</text>
+            <rect x="830" y="20" width="160" height="48" class="box" stroke="#2f8cff"/><text x="910" y="42" class="box-t">output topic</text><text x="910" y="59" class="box-s">+ __consumer_offsets</text>
+          </g>
+          <g stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 5">
+            <path d="M95 70 V470"/><path d="M300 70 V470"/><path d="M510 70 V470"/><path d="M720 70 V470"/><path d="M910 70 V470"/>
+          </g>
+
+          <rect x="290" y="92" width="20" height="360" fill="#1d6cf2" opacity="0.25"/>
+          <text x="318" y="108" class="lbl" text-anchor="start">beginTransaction()</text>
+          <g class="nb"><circle cx="270" cy="104" r="12"/><text x="270" y="104">1</text></g>
+
+          <path d="M95 140 L288 140" class="flow solid"/>
+          <text x="190" y="132" class="lbl" text-anchor="middle">poll() · read_committed</text>
+          <g class="nb"><circle cx="60" cy="140" r="12"/><text x="60" y="140">2</text></g>
+
+          <path d="M312 180 L506 180" class="flow solid"/>
+          <text x="410" y="172" class="lbl" text-anchor="middle">invoke(record, ack)</text>
+          <g class="nb"><circle cx="270" cy="180" r="12"/><text x="270" y="180">3</text></g>
+
+          <path d="M512 220 L716 220" class="flow solid"/>
+          <text x="614" y="212" class="lbl" text-anchor="middle">processed_event exists?</text>
+          <g class="nb"><circle cx="480" cy="220" r="12"/><text x="480" y="220">4</text></g>
+
+          <path d="M512 260 L716 260" class="flow solid"/>
+          <text x="614" y="252" class="lbl" text-anchor="middle">UPDATE … WHERE version=?</text>
+          <text x="614" y="278" class="lbl dim" text-anchor="middle">INSERT processed_event</text>
+          <g class="nb"><circle cx="480" cy="260" r="12"/><text x="480" y="260">5</text></g>
+
+          <path d="M512 310 L716 310" class="flow solid g"/>
+          <text x="614" y="302" class="lbl ok b" text-anchor="middle">DB COMMIT</text>
+          <g class="nb"><circle cx="480" cy="310" r="12"/><text x="480" y="310">6</text></g>
+
+          <path d="M512 350 L906 350" class="flow"/>
+          <text x="760" y="342" class="lbl" text-anchor="middle">send(event) · in tx, not visible yet</text>
+          <g class="nb"><circle cx="480" cy="350" r="12"/><text x="480" y="350">7</text></g>
+
+          <path d="M312 390 L906 390" class="flow"/>
+          <text x="610" y="382" class="lbl" text-anchor="middle">sendOffsetsToTransaction(offset + 1)</text>
+          <g class="nb"><circle cx="270" cy="390" r="12"/><text x="270" y="390">8</text></g>
+
+          <path d="M312 432 L906 432" class="flow solid g"/>
+          <text x="610" y="424" class="lbl ok b" text-anchor="middle">commitTransaction() → event + offset visible together</text>
+          <g class="nb"><circle cx="270" cy="432" r="12"/><text x="270" y="432">9</text></g>
+
+          <rect x="20" y="490" width="470" height="90" rx="8" fill="#fef2f2" stroke="#ef4444"/>
+          <text x="36" y="514" class="lbl bad b" text-anchor="start">✗ fails before step 6</text>
+          <text x="36" y="536" class="lbl" text-anchor="start">DB rollback + Kafka abort → record redelivered,</text>
+          <text x="36" y="556" class="lbl" text-anchor="start">nothing happened → clean retry</text>
+          <rect x="510" y="490" width="480" height="90" rx="8" fill="#fffbeb" stroke="#d97706"/>
+          <text x="526" y="514" class="lbl warn b" text-anchor="start">✗ fails between step 6 and step 9</text>
+          <text x="526" y="536" class="lbl" text-anchor="start">DB committed, Kafka aborted → redelivered →</text>
+          <text x="526" y="556" class="lbl" text-anchor="start">processed_event = duplicate → re-publish outcome only</text>
+        </svg>
+      </div>
+      <ul>
+        <li><b>Exactly-once covers Kafka → Kafka only.</b> The consumed offset and the produced event commit atomically. MySQL isn't part of the Kafka transaction. Its commit (step 6) runs just before Kafka's (step 9); this is "best-effort one-phase commit". The gap between them is closed by <a href="#idempotency">idempotent consumers</a>.</li>
+        <li><b><code>isolation-level: read-committed</code></b>: consumers never see records from aborted or in-flight transactions. Without it, a consumer could act on an event that was later rolled back.</li>
+        <li><b><code>transaction-id-prefix: &lt;svc&gt;-tx-${random.uuid}</code></b>: the prefix must be unique per running instance. Producer-only transactions (the outbox relay, the lock-expiry sender) would otherwise fence each other across instances. For listener transactions, spring-kafka uses EOS mode V2, which fences zombies through consumer group metadata.</li>
+        <li><b>payment-service</b> has no database, so for it the whole hop really is exactly-once: read <code>SeatReservedEvent</code> → write <code>BookingPaymentEvent</code> → commit the offset, all in one transaction.</li>
+        <li><b>Two transaction managers</b> exist in booking and seat inventory: <code>@Primary JpaTransactionManager</code> (used by plain <code>@Transactional</code>) and Boot's <code>KafkaTransactionManager</code> (used by the container).</li>
+      </ul>
+
+      <!-- 7.3 -->
+      <h3 id="ack">7.3 Acknowledgment</h3>
+      <ul>
+        <li><code>spring.kafka.listener.ack-mode: manual</code> and <code>enable-auto-commit: false</code>. Every listener takes an <code>Acknowledgment</code> and calls <code>ack.acknowledge()</code> as its last line, so only after successful processing.</li>
+        <li>If the listener throws, <code>acknowledge()</code> is never reached. The exception goes to the <code>DefaultErrorHandler</code>, which retries or sends to the DLT.</li>
+        <li><b>Inside a Kafka transaction</b> the container sends the offset to the transaction itself when the listener returns normally (<code>sendOffsetsToTransaction</code>). So <code>acknowledge()</code> is effectively redundant here, but it keeps the code correct if transactions are ever switched off.</li>
+        <li><b>Interview angle:</b> auto-commit commits on a timer, regardless of whether processing finished. A crash after the commit but before processing loses the message (at-most-once). Manual or transactional commit gives at-least-once or exactly-once.</li>
+      </ul>
+
+      <!-- 7.4 -->
+      <h3 id="retry-dlt">7.4 Retry with backoff, poison messages and the DLT</h3>
+      <p>One <code>DefaultErrorHandler</code> bean per service (<code>config/KafkaConfig</code>); Spring Boot plugs it into every listener container.</p>
+
+      <div class="diagram">
+        <svg viewBox="0 0 1000 420" role="img" aria-labelledby="dR-t">
+          <title id="dR-t">Retry and dead letter pipeline</title>
+          <g class="topic-glow"><use href="#topic" x="20" y="60" width="170" height="58"/></g>
+          <text x="105" y="140" text-anchor="middle" class="lbl">seat-reserved-topic</text>
+
+          <rect x="250" y="55" width="190" height="70" class="box" stroke="#1d6cf2"/>
+          <text x="345" y="84" class="box-t">Listener container</text>
+          <text x="345" y="104" class="box-s">Kafka tx · read_committed</text>
+
+          <rect x="500" y="55" width="180" height="70" class="box" stroke="#8b5cf6"/>
+          <text x="590" y="84" class="box-t">@KafkaListener</text>
+          <text x="590" y="104" class="box-s">consume(event, ack)</text>
+          <use href="#bad" x="668" y="43" width="24" height="24"/>
+
+          <rect x="760" y="55" width="210" height="70" class="box" stroke="#d97706"/>
+          <text x="865" y="84" class="box-t">DefaultErrorHandler</text>
+          <text x="865" y="104" class="box-s">classify + RetryListener</text>
+
+          <rect x="420" y="185" width="300" height="60" class="box" stroke="#d97706"/>
+          <text x="570" y="210" class="box-t">ExponentialBackOff 1s → 2s → 4s</text>
+          <text x="570" y="229" class="box-s">seek back · redeliver (attempts 2, 3, 4)</text>
+
+          <rect x="740" y="300" width="230" height="60" class="box" stroke="#ef4444"/>
+          <text x="855" y="325" class="box-t">DeadLetterPublishing</text>
+          <text x="855" y="343" class="box-s">Recoverer</text>
+
+          <use href="#topic-dlt" x="470" y="301" width="170" height="58"/>
+          <text x="555" y="380" text-anchor="middle" class="lbl bad">seat-reserved-topic-dlt</text>
+
+          <rect x="190" y="300" width="210" height="60" class="box" stroke="#10a37f"/>
+          <text x="295" y="325" class="box-t">DeadLetterListener</text>
+          <text x="295" y="343" class="box-s">logs record + headers</text>
+
+          <path d="M192 89 L246 89" class="flow solid"/>
+          <path d="M442 89 L496 89" class="flow solid"/>
+          <path d="M682 89 L756 89" class="flow solid r"/>
+          <path d="M820 127 L700 183" class="flow solid y"/>
+          <path d="M420 215 C 360 215, 345 180, 345 129" class="flow solid y"/>
+          <path d="M900 127 L900 296" class="flow solid r"/>
+          <path d="M738 330 L644 330" class="flow solid r"/>
+          <path d="M468 330 L404 330" class="flow solid"/>
+
+          <g class="nb"><circle cx="219" cy="89" r="13"/><text x="219" y="89">1</text></g>
+          <text x="219" y="45" class="lbl dim" text-anchor="middle">poll</text>
+          <g class="nb"><circle cx="469" cy="89" r="13"/><text x="469" y="89">2</text></g>
+          <text x="469" y="45" class="lbl dim" text-anchor="middle">invoke</text>
+          <g class="nb y"><circle cx="719" cy="89" r="13"/><text x="719" y="89">3</text></g>
+          <text x="719" y="45" class="lbl bad" text-anchor="middle">throws</text>
+          <g class="nb y"><circle cx="760" cy="155" r="13"/><text x="760" y="155">4</text></g>
+          <text x="775" y="175" class="lbl warn" text-anchor="start">transient</text>
+          <text x="330" y="168" class="lbl warn" text-anchor="end">retry</text>
+          <g class="nb y"><circle cx="900" cy="230" r="13"/><text x="900" y="230">5</text></g>
+          <text x="918" y="214" class="lbl bad" text-anchor="start">poison:</text>
+          <text x="918" y="232" class="lbl bad" text-anchor="start">at once</text>
+          <text x="918" y="250" class="lbl dim" text-anchor="start">or 4 failed</text>
+          <g class="nb y"><circle cx="691" cy="330" r="13"/><text x="691" y="330">6</text></g>
+          <text x="691" y="400" class="lbl dim" text-anchor="middle">same partition · exception headers</text>
+          <g class="nb"><circle cx="436" cy="330" r="13"/><text x="436" y="330">7</text></g>
+        </svg>
+      </div>
+      <p class="caption">The DLT write and the offset commit happen in the same Kafka transaction as the failed listener call, so a record is never both "in the DLT" and "still pending".</p>
+
+      <div class="table-wrap"><table>
+        <thead><tr><th>Class</th><th>Examples</th><th>Handling</th></tr></thead>
+        <tbody>
+          <tr><td class="warn-t">Transient</td><td>DB down (<code>CannotCreateTransactionException</code>), timeouts, <code>ObjectOptimisticLockingFailureException</code>, <code>PaymentServiceException</code> (gateway timeout)</td><td>Default: everything not listed as poison is retried. <code>ExponentialBackOffWithMaxRetries(3)</code>: initial 1s, multiplier 2, max 10s. That's 4 attempts in total over about 7s, then the DLT.</td></tr>
+          <tr><td class="bad-t">Poison</td><td><code>PoisonMessageException</code> (our validation), <code>IllegalArgumentException</code>, <code>NullPointerException</code>, plus spring-kafka defaults: <code>DeserializationException</code>, <code>MessageConversionException</code>, <code>ConversionException</code>, <code>MethodArgumentResolutionException</code>, <code>NoSuchMethodException</code>, <code>ClassCastException</code></td><td><code>addNotRetryableExceptions(...)</code>: no retry, straight to the DLT.</td></tr>
+          <tr><td class="bad-t">Unreadable bytes</td><td>Malformed JSON, unknown type</td><td><code>ErrorHandlingDeserializer</code> wraps <code>JsonDeserializer</code> and turns the failure into a <code>DeserializationException</code>, which goes to the DLT. Without it, the consumer would fail on every poll, forever.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>Failed-record lifecycle (RetryListener)</h4>
+      <ul>
+        <li><code>failedDelivery(record, ex, attempt)</code>: WARN with topic-partition@offset, key, attempt number and message.</li>
+        <li><code>recovered(record, ex)</code>: ERROR, "sent to &lt;topic&gt;-dlt".</li>
+        <li><code>recoveryFailed(record, original, failure)</code>: the DLT publish itself failed. The offset is <b>not</b> committed, so the record is redelivered and goes through the whole cycle again. Nothing is lost.</li>
+      </ul>
+
+      <h4>DLT records and the DLT consumer</h4>
+      <p><code>DeadLetterPublishingRecoverer</code> writes to <code>&lt;topic&gt;-dlt</code>, same partition, with headers: <code>kafka_dlt-original-topic/-partition/-offset/-timestamp</code>, <code>kafka_dlt-original-consumer-group</code>, <code>kafka_dlt-exception-fqcn</code>, <code>-cause-fqcn</code>, <code>-message</code>, <code>-stacktrace</code>.</p>
+      <p>Each service runs a <code>DeadLetterListener</code> (group <code>${spring.application.name}-dlt-group</code>, <code>auto.offset.reset=earliest</code>). It reads the value as a <b>String</b>, because a DLT can hold JSON that never deserialized, and logs one ERROR line per record. DLTs shared by two consumer groups (<code>seat-reserved-topic-dlt</code>, <code>payment-events-dlt</code>) are filtered by the original-consumer-group header, so each service logs only its own failures. The listener never throws, so a DLT record can't fail again.</p>
+
+      <h4>Failure simulator (payment-service, dev profile)</h4>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Mode</th><th>Behaviour</th><th>What you'll see</th></tr></thead>
+        <tbody>
+          <tr><td><code>NONE</code></td><td>normal</td><td>happy path</td></tr>
+          <tr><td><code>FLAKY</code></td><td>first 2 attempts throw <code>PaymentServiceException</code>, the 3rd succeeds</td><td>attempt=1, attempt=2, then success. Retry recovers; no DLT.</td></tr>
+          <tr><td><code>TRANSIENT</code></td><td>always throws <code>PaymentServiceException</code></td><td>attempts 1–4 at 1s, 2s, 4s → <code>seat-reserved-topic-dlt</code> → after 5m, Flow D</td></tr>
+          <tr><td><code>POISON</code></td><td>throws <code>PoisonMessageException</code></td><td>attempt=1 → DLT immediately</td></tr>
+        </tbody>
+      </table></div>
+
+      <!-- 7.5 -->
+      <h3 id="idempotency">7.5 Idempotency</h3>
+      <p>Kafka delivers at least once to our database code: the outbox can re-send, a Kafka commit can fail after a DB commit, and a rebalance can redeliver. Every consumer that changes the database is therefore idempotent.</p>
+      <h4>Consumer side: idempotency table (<code>processed_event</code> in seat inventory, <code>booking_processed_event</code> in booking)</h4>
+      <p>One row per handled event (<code>eventKey</code> as the primary key, <code>processedAt</code>). It's inserted <b>in the same DB transaction</b> as the business change, so "the work was done" and "the work is recorded as done" can never disagree.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Service</th><th>Event key</th><th>On duplicate</th></tr></thead>
+        <tbody>
+          <tr><td>Seat inventory</td><td><code>BOOKING_CREATED:&lt;bookingId&gt;</code></td><td>Skip the DB work, <b>re-publish</b> the outcome derived from the DB (seats held by this booking → <code>reserved=true</code>, otherwise <code>false</code>)</td></tr>
+          <tr><td>Seat inventory</td><td><code>PAYMENT_FAILED:&lt;bookingId&gt;</code></td><td>Re-publish <code>reserved=false</code></td></tr>
+          <tr><td>Seat inventory</td><td><code>PAYMENT_COMPLETED:&lt;bookingId&gt;</code></td><td>If the seats aren't RESERVED, re-publish <code>reserved=false</code></td></tr>
+          <tr><td>Booking</td><td><code>SEATS_LOCKED:</code>, <code>SEAT_RESERVATION_FAILED:</code>, <code>PAYMENT_COMPLETED:</code>, <code>PAYMENT_FAILED:</code> + bookingId</td><td>Ignore. The state machine would reject a repeated transition anyway.</td></tr>
+          <tr><td>Payment</td><td>none (no DB)</td><td>Kafka EOS makes read → write atomic. A real gateway would also need <code>bookingId</code> as the gateway's idempotency key.</td></tr>
+        </tbody>
+      </table></div>
+      <div class="callout bad"><b>One idempotency table per service</b>Seat inventory uses <code>processed_event</code>; booking uses <code>booking_processed_event</code>. Both services used to share the <code>javatechie</code> schema, and both handle payment events under the same keys (<code>PAYMENT_COMPLETED:&lt;id&gt;</code>). With a shared table, whichever service went second saw the other one's row as "already processed" and skipped its own work: the booking stayed SEATS_LOCKED while its seats were RESERVED. Fixed by giving each service its own database (<code>booking_db</code>, <code>seat_inventory_db</code>, migration in <code>docs/db/split-database-per-service.sql</code>), plus distinct table names.</div>
+      <div class="callout warn"><b>Why re-publish instead of just skipping?</b>The dangerous duplicate is the one in the step 6–9 gap of 7.2: the DB committed, but the Kafka transaction (with the outgoing event) aborted. If the consumer simply skipped the redelivered record, the next event would never be sent and the saga would stall. Re-publishing is safe because every downstream consumer is idempotent too.</div>
+
+      <h4>API side: <code>Idempotency-Key</code> header</h4>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Request</th><th>Response</th></tr></thead>
+        <tbody>
+          <tr><td>New key</td><td>200: booking created (PENDING)</td></tr>
+          <tr><td>Same key + same body (client retry)</td><td>200: the <b>original</b> booking with its current status. No new booking, no new event.</td></tr>
+          <tr><td>Same key + different body</td><td>422: <code>IdempotencyKeyReuseException</code></td></tr>
+          <tr><td>Missing header</td><td>400</td></tr>
+          <tr><td>Empty key, or longer than 100 characters</td><td>400 (<code>@NotBlank @Size(max=100)</code>)</td></tr>
+          <tr><td>Two identical requests at the same moment</td><td><code>saveAndFlush</code> hits the <code>UNIQUE(idempotency_key)</code> constraint on the loser. <code>GlobalExceptionHandler</code> maps the <code>DataIntegrityViolationException</code> to <b>409 Conflict</b>; the client retries with the same key and gets the stored booking.</td></tr>
+        </tbody>
+      </table></div>
+      <p class="muted">IDs: <code>Booking.id</code> comes from a DB sequence (emulated by a <code>booking_seq</code> table on MySQL, <code>allocationSize=50</code>) instead of <code>System.currentTimeMillis()</code>, which collided within the same millisecond. <code>bookingCode</code> is a full UUID (it used to be 8 hex characters) and has a unique constraint.</p>
+
+      <!-- 7.6 -->
+      <h3 id="locking">7.6 Concurrency: no double booking</h3>
+      <p>Two bookings for seat A1 have different keys, so they can sit on different partitions and be processed by different threads or instances at the same moment. Both would read A1 as <code>AVAILABLE</code>. <code>SeatInventory</code> has <code>@Version</code>, so updates are conditional:</p>
+
+      <div class="diagram">
+        <svg viewBox="0 0 1000 400" role="img" aria-labelledby="dL-t">
+          <title id="dL-t">Optimistic locking timeline for two concurrent bookings of one seat</title>
+          <g font-family="JetBrains Mono, monospace">
+            <rect x="60" y="18" width="200" height="48" class="box" stroke="#1d6cf2"/><text x="160" y="40" class="box-t">Thread 1</text><text x="160" y="57" class="box-s">booking X</text>
+            <rect x="400" y="18" width="200" height="48" class="box" stroke="#d97706"/><text x="500" y="40" class="box-t">seat_inventory A1</text><text x="500" y="57" class="box-s">MySQL row</text>
+            <rect x="740" y="18" width="200" height="48" class="box" stroke="#8b5cf6"/><text x="840" y="40" class="box-t">Thread 2</text><text x="840" y="57" class="box-s">booking Y</text>
+          </g>
+          <g stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 5"><path d="M160 68 V390"/><path d="M500 68 V390"/><path d="M840 68 V390"/></g>
+
+          <path d="M162 100 L496 100" class="flow solid"/>
+          <text x="330" y="92" class="lbl" text-anchor="middle">SELECT → AVAILABLE, version=7</text>
+          <g class="nb"><circle cx="130" cy="100" r="12"/><text x="130" y="100">1</text></g>
+
+          <path d="M838 140 L504 140" class="flow solid"/>
+          <text x="670" y="132" class="lbl" text-anchor="middle">SELECT → AVAILABLE, version=7</text>
+          <g class="nb"><circle cx="870" cy="140" r="12"/><text x="870" y="140">2</text></g>
+
+          <path d="M162 190 L496 190" class="flow solid g"/>
+          <text x="330" y="176" class="lbl ok" text-anchor="middle">UPDATE … SET LOCKED, version=8</text>
+          <text x="330" y="208" class="lbl ok" text-anchor="middle">WHERE version=7 → 1 row ✓ COMMIT</text>
+          <g class="nb"><circle cx="130" cy="190" r="12"/><text x="130" y="190">3</text></g>
+
+          <path d="M838 250 L504 250" class="flow solid r"/>
+          <text x="670" y="236" class="lbl bad" text-anchor="middle">UPDATE … WHERE version=7 → 0 rows</text>
+          <text x="670" y="268" class="lbl bad" text-anchor="middle">OptimisticLockingFailure → ROLLBACK</text>
+          <g class="nb y"><circle cx="870" cy="250" r="12"/><text x="870" y="250">4</text></g>
+
+          <text x="850" y="304" class="lbl warn" text-anchor="end">DefaultErrorHandler: transient → retry in 1s</text>
+          <g class="nb y"><circle cx="870" cy="300" r="12"/><text x="870" y="300">5</text></g>
+
+          <path d="M838 340 L504 340" class="flow solid"/>
+          <text x="670" y="332" class="lbl" text-anchor="middle">SELECT → LOCKED (by X)</text>
+          <text x="670" y="362" class="lbl warn" text-anchor="middle">publish reserved=false → booking Y FAILED</text>
+          <g class="nb y"><circle cx="870" cy="340" r="12"/><text x="870" y="340">6</text></g>
+        </svg>
+      </div>
+      <ul>
+        <li>The <code>processed_event</code> insert of thread 2 is rolled back with the rest, so the retry is a clean first attempt.</li>
+        <li><b>Optimistic or pessimistic?</b> Conflicts on the same seat are rare, and optimistic locking holds no DB locks while the service works. Pessimistic locking (<code>SELECT … FOR UPDATE</code>) blocks the second thread instead of failing it. That's better under heavy contention (a hot premiere), at the cost of lock waits and deadlock risk if seats are locked in different orders.</li>
+        <li><code>Booking</code> has <code>@Version</code> too. Its status is updated from two topics, and so from two threads (seat-reserved and payment-events); without a version check one update could overwrite the other.</li>
+      </ul>
+
+      <h3 id="optimistic-locking">7.6.1 How <code>@Version</code> implements optimistic locking</h3>
+
+      <h4>Definition</h4>
+      <div class="callout"><b>Optimistic locking</b>A concurrency-control strategy that assumes conflicts are <b>rare</b>. Reading a row takes <b>no lock</b>. When the transaction writes the row back, the database checks that nobody else changed it since it was read. If someone did, the write is rejected and the caller must <b>re-read and retry</b>. It detects conflicts after the fact instead of preventing them up front.</div>
+      <div class="callout"><b>Pessimistic locking</b>The opposite approach: assume conflicts are likely and <b>lock the row when reading</b> (<code>SELECT … FOR UPDATE</code>). Other transactions that want the row <b>wait</b> until the lock is released, so a conflict can't happen, at the cost of waiting and possible deadlocks.</div>
+      <p><b><code>@Version</code></b> (<code>jakarta.persistence.Version</code>) is the JPA way to switch on optimistic locking for an entity. It marks one numeric field (or a timestamp) as the row's <b>version counter</b>. Hibernate then manages it automatically: it's read with the row, compared on every update, and incremented on every successful update. Your code never sets it.</p>
+
+<pre><code>// seat-inventory-service: entity/SeatInventory.java
+@Version
+@Column(columnDefinition = "BIGINT NOT NULL DEFAULT 0")   // DEFAULT 0 so ddl-auto could add it to existing rows
+private Long version;</code></pre>
+
+      <h4>What Hibernate does, step by step</h4>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Step</th><th>SQL / effect</th></tr></thead>
+        <tbody>
+          <tr><td class="n"><span class="badge-n">1</span></td><td><b>Read</b>: the entity is loaded and its current version is remembered in the persistence context</td><td><code>SELECT id, status, current_booking_id, …, version FROM seat_inventory WHERE show_id=? AND seat_number IN (?)</code> → <code>version = 7</code></td></tr>
+          <tr><td class="n"><span class="badge-n">2</span></td><td><b>Change in memory</b>: plain setters, no SQL yet</td><td><code>seat.setStatus(LOCKED); seat.setCurrentBookingId(id);</code></td></tr>
+          <tr><td class="n"><span class="badge-n">3</span></td><td><b>Flush / commit</b>: the UPDATE carries the old version in its WHERE clause and sets the new one</td><td><code>UPDATE seat_inventory SET status='LOCKED', current_booking_id=?, locked_until=?, version=<b>8</b> WHERE id=1 AND version=<b>7</b></code></td></tr>
+          <tr><td class="n"><span class="badge-n">4a</span></td><td><b>Rows updated = 1</b>: nobody changed the row in between</td><td class="ok-t">Success; the row is now version 8</td></tr>
+          <tr><td class="n"><span class="badge-n r">4b</span></td><td><b>Rows updated = 0</b>: another transaction already moved the row to version 8, so <code>WHERE version=7</code> matches nothing</td><td class="bad-t">Hibernate <code>StaleObjectStateException</code> → JPA <code>OptimisticLockException</code> → Spring <code>ObjectOptimisticLockingFailureException</code>; the whole transaction rolls back</td></tr>
+        </tbody>
+      </table></div>
+      <p>The check and the write are one atomic SQL statement: <code>UPDATE … WHERE version = ?</code>. The database's own row locking during that single statement guarantees that only one of two concurrent updates can match the old version. There is no window between "check" and "write".</p>
+
+      <h4>What happens to the loser in this project</h4>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Where the conflict happens</th><th>Who handles it</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Two <code>BookingCreatedEvent</code>s for the same seat (<code>SeatInventoryService.handleBooking</code>)</td><td>The exception leaves the listener → <code>DefaultErrorHandler</code>. It isn't in the non-retryable list, so it counts as <b>transient</b>: retried after 1s.</td><td>The retry re-reads the seat in a <b>new</b> transaction and sees <code>LOCKED</code> → publishes <code>reserved=false</code> → that booking is FAILED</td></tr>
+          <tr><td>Lock-expiry sweep vs. payment success on the same seats (<code>releaseExpiredLock</code> / <code>confirmSeatsOnPaymentSuccess</code>)</td><td>Scheduler: caught and logged, tried again on the next sweep. Listener: retried by the error handler.</td><td>Whichever commits first wins; the other re-reads and sees the new state</td></tr>
+          <tr><td>Seat-reserved and payment events updating the same <code>Booking</code></td><td><code>DefaultErrorHandler</code> retry</td><td>The retry re-reads the booking and applies its transition through <code>canMoveTo</code></td></tr>
+        </tbody>
+      </table></div>
+      <p>Everything the losing transaction did is rolled back together: its <code>processed_event</code> row, and (through the aborted Kafka transaction) any event it tried to publish. The retry is a clean first attempt; nothing half-done leaks out.</p>
+
+      <h4>Optimistic vs pessimistic: when to use which</h4>
+      <div class="table-wrap"><table>
+        <thead><tr><th></th><th>Optimistic (<code>@Version</code>), used here</th><th>Pessimistic (<code>SELECT … FOR UPDATE</code>)</th></tr></thead>
+        <tbody>
+          <tr><td>Lock while reading</td><td>None</td><td>Row lock until commit</td></tr>
+          <tr><td>On conflict</td><td>Second writer <b>fails</b> and must retry</td><td>Second reader <b>waits</b>, then sees the new state</td></tr>
+          <tr><td>Deadlocks</td><td>Not possible</td><td>Possible if rows are locked in different orders</td></tr>
+          <tr><td>Throughput</td><td>High when conflicts are rare</td><td>Lower: transactions queue on hot rows</td></tr>
+          <tr><td>Best for</td><td>Low contention, long "think time", web / event apps</td><td>High contention on the same rows (e.g. a hot premiere), short transactions</td></tr>
+          <tr><td>Spring Data JPA</td><td><code>@Version</code> field</td><td><code>@Lock(LockModeType.PESSIMISTIC_WRITE)</code> on a repository method</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>Pitfalls</h4>
+      <ul>
+        <li><b>NULL versions:</b> rows created before the column existed would have <code>version = NULL</code>, and <code>WHERE version = NULL</code> never matches. Hence <code>NOT NULL DEFAULT 0</code> on the column.</li>
+        <li><b>Bulk and manual updates skip the check:</b> a JPQL/native <code>UPDATE … WHERE …</code> or a hand-written SQL fix doesn't touch the version, so a transaction that read the row before could still overwrite it. Bump it yourself: <code>UPDATE seat_inventory SET status='AVAILABLE', version = version + 1 WHERE …</code>.</li>
+        <li><b>Retry with fresh data:</b> retrying with the same stale entity fails again. The retry must run in a new transaction that re-reads the row, which the Kafka redelivery here does by design.</li>
+        <li><b>Only rows you write are checked:</b> if a decision depends on a row you only <i>read</i> (and don't update), a concurrent change to it isn't detected (write skew). Use <code>LockModeType.OPTIMISTIC_FORCE_INCREMENT</code> or a pessimistic lock on that row. Here every seat the decision depends on is also updated, so all are checked.</li>
+        <li><b>Don't expect a catch inside the method:</b> the failure usually surfaces at flush/commit, after your method body has returned. Handle it outside the <code>@Transactional</code> method (here: the Kafka error handler or the scheduler loop).</li>
+        <li><b>Across HTTP:</b> to protect a "read, then edit in a form, then save" flow, send the version to the client (e.g. as an <code>ETag</code>) and require it back (<code>If-Match</code>), answering <code>412 Precondition Failed</code> when it no longer matches.</li>
+      </ul>
+
+      <h3 id="pessimistic-locking">7.6.2 Pessimistic locking (the alternative)</h3>
+      <p class="muted">This project uses optimistic locking. This section shows how the same seat booking would work with pessimistic locking, and when you would switch.</p>
+
+      <h4>Definition</h4>
+      <div class="callout"><b>Pessimistic locking</b>A concurrency-control strategy that assumes conflicts are <b>likely</b>. A transaction <b>locks the rows when it reads them</b> (<code>SELECT … FOR UPDATE</code>) and holds the locks until it commits or rolls back. Any other transaction that wants to lock or change those rows <b>waits</b>. Conflicts are prevented up front rather than detected at write time, so the second transaction never works on stale data and never needs a "conflict" retry.</div>
+
+      <h4>JPA lock modes and the SQL they produce (MySQL / InnoDB)</h4>
+      <div class="table-wrap"><table>
+        <thead><tr><th>JPA <code>LockModeType</code></th><th>MySQL SQL</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td><code>PESSIMISTIC_WRITE</code></td><td><code>SELECT … FOR UPDATE</code></td><td>Exclusive row lock: others can't lock or update the row until commit (plain non-locking reads still see the last committed version)</td></tr>
+          <tr><td><code>PESSIMISTIC_READ</code></td><td><code>SELECT … FOR SHARE</code></td><td>Shared lock: others may also share-lock it, but nobody can update it until all share locks are released</td></tr>
+          <tr><td><code>PESSIMISTIC_FORCE_INCREMENT</code></td><td><code>FOR UPDATE</code> + version bump</td><td>Exclusive lock and increments <code>@Version</code>, even if the row isn't otherwise changed</td></tr>
+          <tr><td>lock-timeout hint <code>0</code></td><td><code>… FOR UPDATE NOWAIT</code></td><td>Fail immediately instead of waiting when the row is already locked</td></tr>
+          <tr><td>lock-timeout hint <code>-2</code></td><td><code>… FOR UPDATE SKIP LOCKED</code></td><td>Silently skip rows other transactions have locked (great for work queues, e.g. the outbox relay)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>The seat booking with pessimistic locking</h4>
+<pre><code>// SeatInventoryRepository: lock exactly the requested seats, in a fixed order (ORDER BY id) to avoid deadlocks
+@Lock(LockModeType.PESSIMISTIC_WRITE)
+@Query("select s from SeatInventory s where s.showId = :showId and s.seatNumber in :seats order by s.id")
+List&lt;SeatInventory&gt; lockSeats(@Param("showId") String showId, @Param("seats") List&lt;String&gt; seats);
+
+// SeatInventoryService.handleBooking: must run inside @Transactional, because the locks live until commit
+List&lt;SeatInventory&gt; seats = seatInventoryRepository.lockSeats(event.showId(), event.seatIds());
+// SQL: SELECT … FROM seat_inventory WHERE show_id=? AND seat_number IN (?, ?) ORDER BY id FOR UPDATE
+boolean allAvailable = seats.size() == event.seatIds().size()
+        &amp;&amp; seats.stream().allMatch(s -&gt; s.getStatus() == SeatStatus.AVAILABLE);
+// … same LOCKED / reserved=true|false logic as today; COMMIT releases the row locks</code></pre>
+      <p>The only change is the query used to <b>read</b> the seats. The business logic stays the same, and <code>@Version</code> can stay on the entity as a safety net.</p>
+
+      <div class="diagram">
+        <svg viewBox="0 0 1000 420" role="img" aria-labelledby="dPL-t">
+          <title id="dPL-t">Pessimistic locking timeline for two concurrent bookings of one seat</title>
+          <g font-family="JetBrains Mono, monospace">
+            <rect x="60" y="18" width="200" height="48" class="box" stroke="#1d6cf2"/><text x="160" y="40" class="box-t">Thread 1</text><text x="160" y="57" class="box-s">booking X</text>
+            <rect x="400" y="18" width="200" height="48" class="box" stroke="#d97706"/><text x="500" y="40" class="box-t">seat_inventory A1</text><text x="500" y="57" class="box-s">MySQL row</text>
+            <rect x="740" y="18" width="200" height="48" class="box" stroke="#8b5cf6"/><text x="840" y="40" class="box-t">Thread 2</text><text x="840" y="57" class="box-s">booking Y</text>
+          </g>
+          <g stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 5"><path d="M160 68 V410"/><path d="M500 68 V410"/><path d="M840 68 V410"/></g>
+          <rect x="492" y="96" width="16" height="140" fill="#d97706" opacity="0.25"/>
+          <text x="484" y="172" class="lbl warn" text-anchor="end">row locked by T1 until commit</text>
+
+          <path d="M162 100 L488 100" class="flow solid"/>
+          <text x="325" y="90" class="lbl" text-anchor="middle">SELECT … FOR UPDATE → AVAILABLE</text>
+          <g class="nb"><circle cx="130" cy="100" r="12"/><text x="130" y="100">1</text></g>
+
+          <path d="M838 145 L512 145" class="flow r"/>
+          <text x="675" y="135" class="lbl" text-anchor="middle">SELECT … FOR UPDATE</text>
+          <text x="675" y="165" class="lbl bad" text-anchor="middle">⏳ blocked, waits for T1's lock</text>
+          <g class="nb y"><circle cx="870" cy="145" r="12"/><text x="870" y="145">2</text></g>
+
+          <path d="M162 225 L488 225" class="flow solid g"/>
+          <text x="325" y="212" class="lbl ok" text-anchor="middle">UPDATE … SET LOCKED</text>
+          <text x="325" y="244" class="lbl ok" text-anchor="middle">COMMIT → lock released</text>
+          <g class="nb"><circle cx="130" cy="225" r="12"/><text x="130" y="225">3</text></g>
+
+          <path d="M512 290 L838 290" class="flow solid"/>
+          <text x="675" y="280" class="lbl" text-anchor="middle">lock granted → reads LOCKED (by X)</text>
+          <g class="nb y"><circle cx="870" cy="290" r="12"/><text x="870" y="290">4</text></g>
+
+          <text x="840" y="345" class="lbl warn" text-anchor="end">publish reserved=false → booking Y FAILED</text>
+          <text x="840" y="365" class="lbl dim" text-anchor="end">no exception, no retry: T2 decided on fresh data</text>
+          <g class="nb y"><circle cx="870" cy="345" r="12"/><text x="870" y="345">5</text></g>
+        </svg>
+      </div>
+      <p class="caption">Compare with the optimistic timeline in 7.6: there, thread 2 runs ahead, fails at commit, and has to be retried. Here it simply waits and then decides correctly the first time.</p>
+
+      <h4>Timeouts and deadlocks</h4>
+      <ul>
+        <li><b>Lock wait timeout:</b> a waiting transaction gives up after <code>innodb_lock_wait_timeout</code> (MySQL default <b>50s</b>; set it lower per session, e.g. 3–5s, for request paths). On MySQL, Hibernate only maps the JPA lock-timeout hint values <code>0</code> (NOWAIT) and <code>-2</code> (SKIP LOCKED); other values are ignored, so the timeout comes from the database setting.</li>
+        <li><b>Deadlock:</b> T1 locks A1 then waits for A2, while T2 locked A2 and waits for A1. InnoDB detects the cycle and rolls back one transaction (MySQL error 1213). Prevent it by <b>always locking rows in the same order</b>, hence <code>ORDER BY id</code> in the query above.</li>
+        <li><b>Both are transient:</b> Spring raises a <code>PessimisticLockingFailureException</code> (e.g. <code>CannotAcquireLockException</code>). It isn't in the non-retryable list, so the Kafka <code>DefaultErrorHandler</code> retries it with backoff, the same path as an optimistic conflict.</li>
+        <li><b>Keep lock-holding transactions short:</b> never make HTTP calls or wait for slow work while holding row locks. Every waiting transaction also holds a DB connection.</li>
+      </ul>
+
+      <h4>MySQL / InnoDB traps</h4>
+      <ul>
+        <li><b>Index the lookup:</b> InnoDB locks every row it <i>scans</i>, not just the rows it returns. <code>seat_inventory</code> has no index on <code>(show_id, seat_number)</code>, so <code>FOR UPDATE</code> would scan and lock the <b>whole table</b>, serialising all bookings. Add <code>UNIQUE(show_id, seat_number)</code> first. It's also the natural business key.</li>
+        <li><b>Gap / next-key locks:</b> under the default REPEATABLE READ isolation, range or non-unique lookups also lock the gaps between rows to block inserts. A unique-index equality lookup avoids them.</li>
+        <li><b>Plain reads don't wait:</b> an ordinary <code>SELECT</code> (no <code>FOR UPDATE</code>) reads the last committed snapshot and is never blocked. Only locking reads and writes queue up.</li>
+      </ul>
+
+      <h4>When to switch from optimistic to pessimistic</h4>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Situation</th><th>Choose</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Normal shows: two people rarely want the same seat at the same millisecond</td><td>Optimistic (current)</td><td>No locks or waiting; the rare conflict costs one retry</td></tr>
+          <tr><td>Hot premiere: hundreds of requests for the same few seats</td><td>Pessimistic</td><td>Optimistic would turn most requests into conflicts and retries (retry storms); waiting in line is cheaper</td></tr>
+          <tr><td>Each conflict retry is expensive (external calls, heavy work)</td><td>Pessimistic</td><td>Avoid doing the work twice</td></tr>
+          <tr><td>Long user "think time" between read and write (forms, carts)</td><td>Optimistic</td><td>You can't hold DB locks for minutes</td></tr>
+          <tr><td>Work queue: several workers taking jobs (e.g. the outbox relay)</td><td>Pessimistic with <code>SKIP LOCKED</code></td><td>Each worker takes different rows, so no duplicates and no waiting (gap "Schedulers and relay run on every instance")</td></tr>
+        </tbody>
+      </table></div>
+
+      <!-- 7.7 -->
+      <h3 id="state">7.7 State machines</h3>
+      <div class="diagram">
+        <svg viewBox="0 0 1000 330" role="img" aria-labelledby="dS-t">
+          <title id="dS-t">Booking state machine</title>
+          <text x="20" y="28" class="lbl b" text-anchor="start">BOOKING (booking-service · BookingStatus.canMoveTo)</text>
+          <rect x="40" y="70" width="180" height="56" class="box" stroke="#9ca3af"/><text x="130" y="103" class="box-t">PENDING</text>
+          <rect x="400" y="70" width="200" height="56" class="box" stroke="#1d6cf2"/><text x="500" y="103" class="box-t">SEATS_LOCKED</text>
+          <rect x="780" y="70" width="180" height="56" class="box" stroke="#22c55e"/><text x="870" y="103" class="box-t">CONFIRMED</text>
+          <rect x="400" y="240" width="200" height="56" class="box" stroke="#ef4444"/><text x="500" y="265" class="box-t">FAILED</text><text x="500" y="283" class="box-s">terminal</text>
+
+          <path d="M222 98 L396 98" class="flow solid"/>
+          <text x="309" y="88" class="lbl" text-anchor="middle">SeatReserved ✓</text>
+          <path d="M602 98 L776 98" class="flow solid g"/>
+          <text x="689" y="88" class="lbl ok" text-anchor="middle">payment ✓</text>
+          <path d="M130 68 C 130 20, 870 20, 870 66" class="flow thin"/>
+          <text x="500" y="58" class="lbl dim" text-anchor="middle">payment ✓ arrives before SeatReserved (out of order)</text>
+          <path d="M150 128 L420 238" class="flow solid y"/>
+          <text x="200" y="205" class="lbl warn" text-anchor="middle">seats unavailable</text>
+          <text x="200" y="222" class="lbl warn" text-anchor="middle">/ PENDING 15m timeout</text>
+          <path d="M500 128 L500 236" class="flow solid y"/>
+          <text x="510" y="170" class="lbl warn" text-anchor="start">payment ✗ / lock expired</text>
+          <path d="M850 128 L590 238" class="flow solid r"/>
+          <text x="800" y="205" class="lbl bad" text-anchor="middle">lock expired before payment</text>
+          <text x="800" y="222" class="lbl bad" text-anchor="middle">(REFUND REQUIRED)</text>
+        </svg>
+      </div>
+      <div class="diagram">
+        <svg viewBox="0 0 1000 250" role="img" aria-labelledby="dS2-t">
+          <title id="dS2-t">Seat state machine</title>
+          <text x="20" y="28" class="lbl b" text-anchor="start">SEAT (seat-inventory-service · SeatStatus)</text>
+          <rect x="40" y="80" width="190" height="56" class="box" stroke="#22c55e"/><text x="135" y="113" class="box-t">AVAILABLE</text>
+          <rect x="405" y="80" width="190" height="56" class="box" stroke="#d97706"/><text x="500" y="105" class="box-t">LOCKED</text><text x="500" y="123" class="box-s">semantic lock · lockedUntil</text>
+          <rect x="770" y="80" width="190" height="56" class="box" stroke="#1d6cf2"/><text x="865" y="113" class="box-t">RESERVED</text>
+          <path d="M232 98 L401 98" class="flow solid"/>
+          <text x="316" y="70" class="lbl" text-anchor="middle">BookingCreated,</text>
+          <text x="316" y="86" class="lbl" text-anchor="middle">all seats free</text>
+          <path d="M597 108 L766 108" class="flow solid g"/>
+          <text x="681" y="98" class="lbl ok" text-anchor="middle">payment ✓</text>
+          <path d="M500 138 C 500 220, 135 220, 135 140" class="flow solid y"/>
+          <text x="318" y="230" class="lbl warn" text-anchor="middle">payment ✗ / lock expired (compensation)</text>
+        </svg>
+      </div>
+      <p>Events arrive from two topics, so their order across topics isn't guaranteed. <code>canMoveTo</code> applies only forward moves; anything else is logged and ignored, but still recorded in the idempotency table. <code>FAILED</code> is terminal.</p>
+
+      <!-- 7.8 -->
+      <h3 id="db-per-service">7.8 Database per service</h3>
+      <p>Each service owns its data and is the only one that reads or writes it. Other services learn about it only through events.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Service</th><th>Database</th><th>Tables</th></tr></thead>
+        <tbody>
+          <tr><td>booking-service</td><td><code>booking_db</code></td><td><code>booking</code>, <code>booking_seatids</code>, <code>booking_seq</code>, <code>outbox_event</code>, <code>booking_processed_event</code></td></tr>
+          <tr><td>seat-inventory-service</td><td><code>seat_inventory_db</code></td><td><code>seat_inventory</code>, <code>processed_event</code></td></tr>
+          <tr><td>payment-service</td><td>none</td><td>stateless: Kafka in, Kafka out</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="diagram">
+        <svg viewBox="0 0 1000 330" role="img" aria-labelledby="dDB-t">
+          <title id="dDB-t">Before: two services sharing one schema and one idempotency table. After: one database per service.</title>
+          <rect x="10" y="10" width="470" height="310" rx="10" fill="#fef2f2" stroke="#ef4444" stroke-dasharray="5 5"/>
+          <text x="245" y="36" class="lbl bad b" text-anchor="middle">BEFORE · one shared schema</text>
+          <use href="#srv" x="40" y="60" width="120" height="78" color="#1d6cf2"/>
+          <text x="100" y="158" class="lbl b" text-anchor="middle">booking</text>
+          <use href="#srv" x="330" y="60" width="120" height="78" color="#10a37f"/>
+          <text x="390" y="158" class="lbl b" text-anchor="middle">seat-inventory</text>
+          <use href="#db" x="170" y="190" width="150" height="105" color="#ef4444"/>
+          <text x="245" y="238" class="box-t">javatechie</text>
+          <text x="245" y="258" class="lbl bad" text-anchor="middle">processed_event</text>
+          <text x="245" y="276" class="lbl dim" text-anchor="middle">(shared!)</text>
+          <path d="M382 172 L300 212" class="flow solid r"/>
+          <path d="M118 172 L190 212" class="flow solid r"/>
+          <g class="nb y"><circle cx="340" cy="187" r="13"/><text x="340" y="187">1</text></g>
+          <text x="352" y="214" class="lbl warn" text-anchor="start">INSERT key</text>
+          <g class="nb y"><circle cx="154" cy="192" r="13"/><text x="154" y="192">2</text></g>
+          <text x="140" y="222" class="lbl warn" text-anchor="end">exists? yes</text>
+          <g class="nb y"><circle cx="38" cy="270" r="13"/><text x="38" y="270">3</text></g>
+          <text x="58" y="275" class="lbl bad" text-anchor="start">skips → stuck</text>
+          <use href="#bad" x="146" y="48" width="24" height="24"/>
+
+          <rect x="520" y="10" width="470" height="310" rx="10" fill="#f0fdf4" stroke="#22c55e" stroke-dasharray="5 5"/>
+          <text x="755" y="36" class="lbl ok b" text-anchor="middle">AFTER · database per service</text>
+          <use href="#srv" x="545" y="60" width="120" height="78" color="#1d6cf2"/>
+          <text x="605" y="158" class="lbl b" text-anchor="middle">booking</text>
+          <use href="#srv" x="700" y="60" width="120" height="78" color="#10a37f"/>
+          <text x="760" y="158" class="lbl b" text-anchor="middle">seat-inventory</text>
+          <use href="#srv" x="855" y="60" width="120" height="78" color="#8b5cf6"/>
+          <text x="915" y="158" class="lbl b" text-anchor="middle">payment</text>
+          <use href="#db" x="540" y="195" width="130" height="95" color="#1d6cf2"/>
+          <text x="605" y="243" class="box-t">booking_db</text>
+          <text x="605" y="262" class="box-s">booking_processed_event</text>
+          <use href="#db" x="695" y="195" width="130" height="95" color="#10a37f"/>
+          <text x="760" y="243" class="box-t">seat_inventory_db</text>
+          <text x="760" y="262" class="box-s">processed_event</text>
+          <text x="915" y="243" class="lbl dim" text-anchor="middle">no database</text>
+          <path d="M605 165 L605 191" class="flow solid g"/>
+          <path d="M760 165 L760 191" class="flow solid g"/>
+          <use href="#ok" x="652" y="48" width="24" height="24"/>
+          <use href="#ok" x="807" y="48" width="24" height="24"/>
+        </svg>
+      </div>
+
+      <div class="callout bad"><b>The bug this fixed (a real incident in this project)</b>
+        <ol style="margin:4px 0 0;padding-left:20px">
+          <li>Payment succeeded. Seat inventory handled <code>BookingPaymentEvent</code> first: seat A5 → <code>RESERVED</code>, and it inserted <code>PAYMENT_COMPLETED:&lt;bookingId&gt;</code> into <code>processed_event</code>.</li>
+          <li>Booking-service handled the same event, and its idempotency check looked for the same key in the <b>same table</b>. It found seat inventory's row.</li>
+          <li>It treated the event as a duplicate and skipped it, so the booking stayed <code>SEATS_LOCKED</code> while its seat was <code>RESERVED</code>. <code>PAYMENT_FAILED:&lt;id&gt;</code> had the same collision.</li>
+        </ol>
+        <p style="margin:8px 0 0"><b>Fix:</b> one database per service. As a second safeguard, booking's idempotency table has its own name (<code>booking_processed_event</code>), so the bug can't return even if both services ever point at one schema again.</p>
+      </div>
+
+      <h4>Migration</h4>
+      <p><code>docs/db/split-database-per-service.sql</code> creates both databases and copies each service's tables and rows from <code>javatechie</code>, which it leaves untouched. It keeps <code>booking_seq</code>'s current value, so new bookings don't reuse ids. It splits the shared idempotency rows by key prefix and repairs the booking that got stuck. It can be run more than once (<code>IF NOT EXISTS</code>, <code>INSERT IGNORE</code>). Both datasource URLs have <code>?createDatabaseIfNotExist=true</code>, so a fresh machine needs no manual setup.</p>
+      <ul>
+        <li><b>Why it matters:</b> one owner per table lets a service change its schema, scale its database or pick a different store without coordinating with anyone. A shared database couples services at the data level, the coupling microservices are meant to remove.</li>
+        <li><b>Cost:</b> no cross-service joins or ACID transactions. That's exactly why this project uses a saga, events and idempotent consumers.</li>
+        <li><b>Production:</b> a separate MySQL user per service with grants on its own database only (commented-out example at the end of the script), so one service can't reach another's tables even by mistake.</li>
+      </ul>
+
+      <!-- 7.9 -->
+      <h3 id="api-errors">7.9 API error handling</h3>
+      <p>The controller contains no error handling: <code>bookSeat</code> and <code>getBooking</code> are one line each. All exceptions are turned into HTTP responses in one place, <code>exception/GlobalExceptionHandler</code> (<code>@RestControllerAdvice</code>). It extends <code>ResponseEntityExceptionHandler</code>, and every error body is RFC 9457 <code>ProblemDetail</code> JSON.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Exception</th><th>Status</th><th>When</th><th>Handled by</th></tr></thead>
+        <tbody>
+          <tr><td><code>MissingRequestHeaderException</code></td><td>400</td><td>No <code>Idempotency-Key</code> header</td><td>inherited from <code>ResponseEntityExceptionHandler</code></td></tr>
+          <tr><td><code>HandlerMethodValidationException</code></td><td>400</td><td>Key blank or longer than 100 characters (<code>@NotBlank @Size(max = 100)</code>)</td><td>inherited</td></tr>
+          <tr><td><code>HttpMessageNotReadableException</code></td><td>400</td><td>Malformed JSON body</td><td>inherited</td></tr>
+          <tr><td><code>BookingNotFoundException</code></td><td>404</td><td><code>GET /bookings/{id}</code> for an unknown reservation id</td><td><code>@ExceptionHandler</code></td></tr>
+          <tr><td><code>IdempotencyKeyReuseException</code></td><td>422</td><td>Same key, different request body</td><td><code>@ExceptionHandler</code></td></tr>
+          <tr><td><code>DataIntegrityViolationException</code></td><td>409</td><td>Two requests with the same key at the same moment; the client should retry with the same key</td><td><code>@ExceptionHandler</code></td></tr>
+          <tr><td><code>Exception</code></td><td>500</td><td>Anything unexpected: the full stack trace goes to the log, a generic message to the client</td><td><code>@ExceptionHandler</code></td></tr>
+        </tbody>
+      </table></div>
+<pre><code>HTTP/1.1 422
+Content-Type: application/problem+json
+
+{
+  "type": "about:blank",
+  "title": "Idempotency-Key reused",
+  "status": 422,
+  "detail": "Idempotency-Key demo-1 was already used with a different request",
+  "instance": "/booking-service/bookSeat"
+}</code></pre>
+      <div class="callout"><b>Why 409 and not "return the other booking"?</b>Earlier the controller caught <code>DataIntegrityViolationException</code> and loaded the winner's booking. An <code>@ExceptionHandler</code> can't do that, because the request body has already been read by the time it runs. 409 Conflict ("in progress, retry with the same key") is also what the IETF Idempotency-Key draft prescribes. The retry then gets the stored booking through the normal replay path.</div>
+    </section>
+
+    <!-- ============================================================ 8 -->
+    <section id="scenarios">
+      <h2><span class="num">08</span>Failure scenario matrix</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Scenario</th><th>What happens</th><th>End state</th></tr></thead>
+        <tbody>
+          <tr><td>Client retries POST (timeout on their side)</td><td>Same <code>Idempotency-Key</code> → original booking returned</td><td class="ok-t">one booking</td></tr>
+          <tr><td>Same <code>Idempotency-Key</code> sent twice at the same moment</td><td>Unique constraint → <code>DataIntegrityViolationException</code> → 409; the client retries with the same key</td><td class="ok-t">one booking</td></tr>
+          <tr><td>Same <code>Idempotency-Key</code>, different body</td><td><code>IdempotencyKeyReuseException</code> → 422</td><td class="ok-t">rejected, nothing stored</td></tr>
+          <tr><td>Booking API answers 503 / is unreachable (client side, simulator)</td><td>Retried 3× after 1s, 2s, 4s with the <b>same</b> Idempotency-Key; still failing → <code>booking-request-dlt</code></td><td class="ok-t">no lost request, no duplicate booking</td></tr>
+          <tr><td>Client sends a bad request (400 / 422)</td><td>Not retried (would fail the same way) → <code>booking-request-dlt</code> at once</td><td class="ok-t">visible in the DLT log</td></tr>
+          <tr><td>Kafka down during a booking</td><td>Booking + outbox committed; relay retries every 1s</td><td class="ok-t">saga starts when Kafka is back</td></tr>
+          <tr><td>booking-service crashes after the relay sent, before <code>sentAt</code></td><td>Event re-sent; seat inventory sees <code>BOOKING_CREATED</code> duplicate and re-publishes the outcome</td><td class="ok-t">no double lock</td></tr>
+          <tr><td>Two users book the same seat at once</td><td>Optimistic lock: one commits, the other retries and gets <code>reserved=false</code></td><td class="ok-t">one LOCKED, the other booking FAILED</td></tr>
+          <tr><td>Seat already taken or unknown</td><td>Flow C</td><td class="ok-t">booking FAILED, no charge</td></tr>
+          <tr><td>Payment declined (<code>amount &gt; 2000</code>)</td><td>Flow B, compensation</td><td class="ok-t">seats AVAILABLE, booking FAILED</td></tr>
+          <tr><td>MySQL down in seat inventory</td><td>Transient → 1s, 2s, 4s retries → DLT if it stays down</td><td class="warn-t">booking PENDING → FAILED after 15m</td></tr>
+          <tr><td>Payment gateway keeps timing out</td><td>4 attempts → <code>seat-reserved-topic-dlt</code>; lock expires after 5m (Flow D)</td><td class="ok-t">seats released, booking FAILED</td></tr>
+          <tr><td>Malformed JSON on a topic</td><td><code>ErrorHandlingDeserializer</code> → DLT immediately</td><td class="ok-t">partition keeps flowing</td></tr>
+          <tr><td>Event with missing fields</td><td><code>PoisonMessageException</code> → DLT immediately</td><td class="warn-t">saga ends by timeout</td></tr>
+          <tr><td>Seat inventory crashes after its DB commit, before the Kafka commit</td><td>Redelivered → duplicate detected → outcome re-published</td><td class="ok-t">saga continues</td></tr>
+          <tr><td>Payment success arrives after the lock expired</td><td>Seats not retaken; <code>REFUND REQUIRED</code> logged; <code>reserved=false</code> → booking CONFIRMED → FAILED</td><td class="warn-t">consistent, refund is manual</td></tr>
+          <tr><td>DLT publish fails</td><td><code>recoveryFailed</code>: offset not committed → record redelivered</td><td class="ok-t">nothing lost</td></tr>
+          <tr><td>Consumer rebalance mid-processing</td><td>Uncommitted transaction aborted; new owner reprocesses; idempotency absorbs the DB part</td><td class="ok-t">no duplicates visible</td></tr>
+          <tr><td>Zombie instance (long GC pause) wakes up and tries to commit</td><td>Fenced by transactional producer epoch (EOS V2); its commit fails</td><td class="ok-t">no duplicate output</td></tr>
+          <tr><td>Two services share one idempotency table <span class="muted">(was a real bug)</span></td><td>The second service sees the first one's <code>PAYMENT_COMPLETED</code> row and skips its own work</td><td class="ok-t">fixed by database per service (7.8)</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- ============================================================ 9 -->
+    <section id="config">
+      <h2><span class="num">09</span>Configuration reference</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Property</th><th>Value</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td><code>spring.kafka.producer.transaction-id-prefix</code></td><td><code>&lt;svc&gt;-tx-${random.uuid}</code></td><td>Enables Kafka transactions and the <code>KafkaTransactionManager</code>; unique per instance</td></tr>
+          <tr><td><code>spring.kafka.producer.acks</code></td><td><code>all</code></td><td>Required for idempotent, transactional producers</td></tr>
+          <tr><td><code>spring.kafka.consumer.enable-auto-commit</code></td><td><code>false</code></td><td>Offsets are committed only through the transaction</td></tr>
+          <tr><td><code>spring.kafka.consumer.isolation-level</code></td><td><code>read-committed</code></td><td>Never read aborted or in-flight writes</td></tr>
+          <tr><td><code>spring.kafka.consumer.value-deserializer</code></td><td><code>ErrorHandlingDeserializer</code> → <code>JsonDeserializer</code></td><td>Poison pills go to the DLT instead of an endless loop</td></tr>
+          <tr><td><code>spring.kafka.listener.ack-mode</code></td><td><code>manual</code></td><td>Listeners acknowledge explicitly</td></tr>
+          <tr><td><code>seat.lock.ttl</code> / <code>seat.lock.sweep-interval</code></td><td><code>PT5M</code> / <code>PT30S</code></td><td>Saga timeout for LOCKED seats</td></tr>
+          <tr><td><code>booking.pending-timeout</code> / <code>booking.pending-sweep-interval</code></td><td><code>PT15M</code> / <code>PT1M</code></td><td>Fail bookings stuck in PENDING</td></tr>
+          <tr><td><code>outbox.poll-interval</code> / <code>outbox.retention</code> / <code>outbox.cleanup-interval</code></td><td><code>PT1S</code> / <code>P7D</code> / <code>PT1H</code></td><td>Outbox relay timing</td></tr>
+          <tr><td>Backoff (code, <code>KafkaConfig</code>)</td><td>3 retries · 1s × 2 · max 10s</td><td>Transient failures</td></tr>
+          <tr><td><code>spring.datasource.url</code> (booking)</td><td><code>jdbc:mysql://localhost:3306/booking_db?createDatabaseIfNotExist=true</code></td><td>Database per service</td></tr>
+          <tr><td><code>spring.datasource.url</code> (seat inventory)</td><td><code>jdbc:mysql://localhost:3306/seat_inventory_db?createDatabaseIfNotExist=true</code></td><td>Database per service</td></tr>
+          <tr><td><code>booking.simulator.enabled</code></td><td><code>false</code></td><td>Turns the concurrency demo on (each rush uses up seats)</td></tr>
+          <tr><td><code>booking.simulator.initial-delay</code> / <code>interval</code></td><td><code>PT20S</code> / <code>PT5M</code></td><td>First rush after startup, then every 5 minutes</td></tr>
+          <tr><td><code>booking.simulator.min-users</code> / <code>max-users</code> / <code>contested-seats</code></td><td><code>10</code> / <code>15</code> / <code>3</code></td><td>People per rush, and how many seats they fight for</td></tr>
+          <tr><td><code>booking.simulator.chaos</code> / <code>max-retries</code> / <code>retry-backoff</code></td><td><code>true</code> / <code>3</code> / <code>PT1S</code></td><td>Injected errors; HTTP retries after 1s, 2s, 4s, then <code>booking-request-dlt</code></td></tr>
+          <tr><td><code>booking.simulator.settle-time</code></td><td><code>PT45S</code></td><td>Wait for the saga before reading the results</td></tr>
+          <tr><td><code>springdoc.api-docs.version</code></td><td><code>openapi_3_0</code></td><td>springdoc 2.8 defaults to 3.1; 3.0 is readable by every Swagger UI and client generator</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- ============================================================ 10 -->
+    <section id="run">
+      <h2><span class="num">10</span>Run &amp; demo</h2>
+<pre><code># JDK 21 required
+export JAVA_HOME="/c/Program Files/Java/jdk-21"
+export CONFLUENT_API_KEY=...  CONFLUENT_API_SECRET=...
+
+# one time: create booking_db / seat_inventory_db and copy existing data from javatechie
+# (services stopped; a fresh machine can skip this, the databases are created on startup)
+mysql -uroot -proot &lt; docs/db/split-database-per-service.sql
+
+cd movie-booking-commons      &amp;&amp; mvn install
+cd ../seat-inventory-service  &amp;&amp; mvn spring-boot:run
+cd ../payment-service         &amp;&amp; mvn spring-boot:run -Dspring-boot.run.profiles=dev
+cd ../booking-service         &amp;&amp; mvn spring-boot:run</code></pre>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Service</th><th>Swagger UI</th><th>OpenAPI JSON</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Booking</td><td><code>http://localhost:9191/swagger-ui.html</code></td><td><code>/v3/api-docs</code></td><td><code>POST /bookSeat</code> (needs the <code>Idempotency-Key</code> header), <code>GET /bookings/{id}</code></td></tr>
+          <tr><td>Seat inventory</td><td><code>http://localhost:9292/swagger-ui.html</code></td><td><code>/v3/api-docs</code></td><td><code>GET /seat-inventory-service/seats?showId=&amp;status=</code> (read only)</td></tr>
+          <tr><td>Payment</td><td><code>http://localhost:9393/swagger-ui.html</code></td><td><code>/v3/api-docs</code></td><td>Failure-simulator endpoints only with the <code>dev</code> profile</td></tr>
+        </tbody>
+      </table></div>
+      <div class="callout warn"><b>"Unable to render this definition … does not specify a valid version field"</b>The browser is still running Swagger UI 4.x, cached from springdoc 2.0.4, which can't read OpenAPI 3.1. Hard-reload the page (Ctrl + Shift + R) or open it in incognito. With <code>springdoc.api-docs.version: openapi_3_0</code> the services publish 3.0, which any cached UI can read.</div>
+
+      <h3>Happy path</h3>
+<pre><code>curl -X POST localhost:9191/booking-service/bookSeat \
+  -H "Content-Type: application/json" -H "Idempotency-Key: demo-1" \
+  -d '{"userId":"u1","showId":"SHOW_101","seatIds":["A1"],"amount":500}'
+# run it again with the same key → same reservationId, no second booking
+# watch the status move: PENDING → SEATS_LOCKED → CONFIRMED
+curl localhost:9191/booking-service/bookings/&lt;reservationId&gt;
+# unknown id → 404 ProblemDetail</code></pre>
+
+      <h3>Concurrency rush (section 15)</h3>
+<pre><code>cd booking-service &amp;&amp; mvn spring-boot:run -Dspring-boot.run.arguments=--booking.simulator.enabled=true
+# first rush after 20s, then every 5 minutes; result report 45s after each rush
+
+# out of seats? reset them
+mysql -uroot -proot -e "UPDATE seat_inventory_db.seat_inventory SET status='AVAILABLE', currentBookingId=NULL, lockedUntil=NULL, version=version+1 WHERE status&lt;&gt;'AVAILABLE'"</code></pre>
+
+      <h3>Error responses</h3>
+<pre><code># no header → 400 ProblemDetail
+curl -i -X POST localhost:9191/booking-service/bookSeat -H "Content-Type: application/json" -d '{...}'
+# same key, different body → 422
+curl -i ... -H "Idempotency-Key: demo-1" -d '{"userId":"u1","showId":"SHOW_101","seatIds":["A3"],"amount":500}'</code></pre>
+
+      <h3>Compensation (Flow B)</h3>
+<pre><code>curl ... -H "Idempotency-Key: demo-2" -d '{"userId":"u1","showId":"SHOW_101","seatIds":["A2"],"amount":5000}'</code></pre>
+
+      <h3>Retry → DLT → timeout (Flow D)</h3>
+<pre><code>curl -X POST localhost:9393/payment-service/simulate-failure/TRANSIENT
+curl ... -H "Idempotency-Key: demo-3" -d '{"userId":"u1","showId":"SHOW_101","seatIds":["A5"],"amount":500}'
+# payment log: attempt=1..4, then "sent to seat-reserved-topic-dlt", then the DLT line
+# after ~5m: seat inventory "Seat lock expired ... released", booking → FAILED
+curl -X POST localhost:9393/payment-service/simulate-failure/NONE</code></pre>
+    </section>
+
+    <!-- ============================================================ 11 -->
+    <section id="interview">
+      <h2><span class="num">11</span>Interview questions (with answers from this project)</h2>
+
+      <div class="qa-group">Saga fundamentals</div>
+      <details class="qa"><summary>What is the Saga pattern and why not use a distributed (2PC/XA) transaction?</summary><div class="a">
+        <p>A saga is a sequence of local transactions, one per service. Each one publishes an event or message that triggers the next. When a step fails, compensating transactions undo the earlier steps.</p>
+        <p>Why not 2PC/XA:</p>
+        <ul>
+          <li>Locks are held across services for the whole protocol, which hurts throughput.</li>
+          <li>The coordinator is a single point of failure: participants block "in doubt" if it dies.</li>
+          <li>Kafka and most cloud databases don't support XA.</li>
+          <li>Services become tightly coupled in availability: all must be up to commit.</li>
+        </ul>
+        <p>The trade-off: a saga gives <b>eventual</b> consistency and <b>no isolation</b>.</p>
+      </div></details>
+      <details class="qa"><summary>Choreography vs orchestration: which did you choose and when would you switch?</summary><div class="a">
+        <p><b>Choreography:</b> three services and a short linear flow, so events are enough and there's no extra component to run.</p>
+        <p>I'd switch to an orchestrator (Temporal, Camunda, or a saga service of our own) when:</p>
+        <ul>
+          <li>the flow grows branches, parallel steps or human approval;</li>
+          <li>we need one place to see "where is booking X";</li>
+          <li>event chains start to form cycles, or nobody owns the end-to-end flow.</li>
+        </ul>
+      </div></details>
+      <details class="qa"><summary>What is a compensating transaction? What are its rules?</summary><div class="a">
+        <p>A compensating transaction is a business-level undo, not a database rollback. Here: release the seats (LOCKED → AVAILABLE) and mark the booking FAILED; for payment it would be a refund.</p>
+        <p>Rules:</p>
+        <ul>
+          <li>It must be <b>idempotent</b>, because it can be delivered twice.</li>
+          <li>It must be <b>retryable until it succeeds</b>. A compensation can't be allowed to fail permanently, so give it retries, then a DLT and alerting.</li>
+          <li>It should be <b>commutative</b> where possible, since it may arrive before or after other events.</li>
+          <li>Some actions can't be compensated (an email already sent). Put those after the <b>pivot</b> transaction.</li>
+        </ul>
+      </div></details>
+      <details class="qa"><summary>Sagas have no isolation. What anomalies can occur and how do you counter them?</summary><div class="a">
+        <p>Anomalies:</p>
+        <ul>
+          <li><b>Lost updates:</b> two sagas overwrite each other.</li>
+          <li><b>Dirty reads:</b> reading data from a saga that later compensates.</li>
+          <li><b>Fuzzy reads:</b> the same data reads differently within one saga.</li>
+        </ul>
+        <p>Countermeasures used here:</p>
+        <ul>
+          <li><b>Semantic lock:</b> the LOCKED seat status means "in a saga, don't touch".</li>
+          <li><b>Version check:</b> <code>@Version</code> on seats and bookings.</li>
+          <li><b>Pivot-based ordering:</b> irreversible actions come after the pivot.</li>
+        </ul>
+        <p>Others: commutative updates, re-reading values before acting, and the "by value" strategy (choosing concurrency control per request based on business risk).</p>
+      </div></details>
+      <details class="qa"><summary>What if a saga step never replies?</summary><div class="a">
+        <p>Every saga needs timeouts. Here:</p>
+        <ul>
+          <li><code>lockedUntil</code> with a scheduler in seat inventory releases the seats after 5m and tells booking.</li>
+          <li>Booking fails anything still PENDING after 15m.</li>
+          <li>Each timeout has exactly one owner, so the two sides don't race.</li>
+          <li>The late-reply case is handled explicitly: a payment that succeeds after the lock expired gets a refund, not a stolen seat.</li>
+        </ul>
+      </div></details>
+
+      <div class="qa-group">Messaging guarantees</div>
+      <details class="qa"><summary>At-most-once, at-least-once, exactly-once: what does each hop give you here?</summary><div class="a">
+        <ul>
+          <li><b>REST → Kafka:</b> outbox gives at-least-once, never lost.</li>
+          <li><b>Kafka → payment → Kafka:</b> exactly-once (Kafka transactions, no DB).</li>
+          <li><b>Kafka → seat or booking DB:</b> at-least-once delivery plus idempotent processing, which is <i>effectively once</i>.</li>
+        </ul>
+        <p>Exactly-once across Kafka and a database requires idempotency or the outbox. Kafka transactions alone can't do it.</p>
+      </div></details>
+      <details class="qa"><summary>You enabled Kafka exactly-once. Why do you still need idempotent consumers?</summary><div class="a">
+        <p>EOS makes consume-offset and produce atomic <i>within Kafka</i>. The MySQL commit is a separate transaction. If MySQL commits and the Kafka commit then fails (crash, rebalance, fencing), the record is redelivered, and without idempotency the seats would be locked twice.</p>
+        <p>The outbox relay is also at-least-once by design.</p>
+      </div></details>
+      <details class="qa"><summary>Outbox vs Kafka transactions vs "send after commit": when to use which?</summary><div class="a">
+        <ul>
+          <li><b>Send after commit:</b> loses the event if the process dies in between. Not acceptable.</li>
+          <li><b>Kafka transactions:</b> ideal for consume → produce flows (payment-service) and for the listener's own output.</li>
+          <li><b>Outbox:</b> for "DB change + event" started by a non-Kafka trigger such as a REST call. The DB is the single source of truth, and a relay (polling here; Debezium CDC in high-volume systems) publishes it.</li>
+        </ul>
+        <p>Both are used here: the outbox in booking, Kafka transactions everywhere.</p>
+      </div></details>
+      <details class="qa"><summary>How is ordering guaranteed?</summary><div class="a">
+        <p>Kafka orders records only within a partition. All events are keyed by <code>bookingId</code>, so one booking's events on one topic are in order.</p>
+        <p>Across topics there's no ordering: booking can see the payment result before "seats locked". The state machine accepts forward moves only and tolerates this.</p>
+        <p>Retry topics (non-blocking retries) would break per-key order. That's one reason this project uses blocking retries.</p>
+      </div></details>
+      <details class="qa"><summary>What does read_committed do, and what breaks without it?</summary><div class="a"><p>With <code>read_committed</code>, consumers skip records from aborted transactions and wait for open transactions (they only read up to the "last stable offset"). With the default <code>read_uncommitted</code>, a consumer could act on an event whose transaction later aborted, for example lock seats for a booking event that "never happened".</p></div></details>
+      <details class="qa"><summary>What is transactional.id and zombie fencing?</summary><div class="a">
+        <p>A transactional producer registers a <code>transactional.id</code>. The broker bumps an epoch each time it's initialized, and any older producer instance with the same id (a "zombie", e.g. after a long GC pause) is fenced: its writes and commits are rejected.</p>
+        <p>With EOS V2 (Kafka 2.5+), listener transactions are fenced using consumer group metadata, so one producer per consumer thread is enough. The prefix gets a random suffix per instance so producer-only transactions (outbox relay, schedulers) on different instances don't fence each other.</p>
+      </div></details>
+      <details class="qa"><summary>Manual ack vs auto-commit? What does acknowledge() do inside a transaction?</summary><div class="a">
+        <ul>
+          <li><b>Auto-commit</b> commits on a timer, regardless of processing, so a crash can lose or duplicate messages.</li>
+          <li><b>Manual ack</b> commits after success.</li>
+          <li><b>With a KafkaTransactionManager</b> the container adds the offset to the transaction when the listener returns normally, so the commit is part of the same atomic unit as the produced events. <code>acknowledge()</code> is then informational, but keeps the code correct without transactions.</li>
+        </ul>
+      </div></details>
+
+      <div class="qa-group">Errors, retries, DLT</div>
+      <details class="qa"><summary>How do you separate transient failures from poison messages?</summary><div class="a">
+        <ul>
+          <li><b>Default:</b> retry everything; most unknown errors are infrastructure problems.</li>
+          <li><b>Not retryable:</b> exceptions that can never succeed on retry: our <code>PoisonMessageException</code> (validation), <code>IllegalArgumentException</code>, <code>NullPointerException</code>, and deserialization or conversion errors (spring-kafka defaults).</li>
+          <li><b>Business failures</b> (payment declined, seat taken) are <i>events</i>, not exceptions, so they never reach the error handler.</li>
+        </ul>
+      </div></details>
+      <details class="qa"><summary>Blocking vs non-blocking retries: trade-offs?</summary><div class="a">
+        <ul>
+          <li><b>Blocking</b> (<code>DefaultErrorHandler</code> + backoff, used here): simple, keeps per-partition order, but the partition is stuck during the backoff (head-of-line blocking, about 7s at most here). Keep the total backoff well below <code>max.poll.interval.ms</code> and the transaction timeout.</li>
+          <li><b>Non-blocking</b> (<code>@RetryableTopic</code>): failed records move to <code>-retry-1s</code>, <code>-retry-2s</code> topics, so the main partition keeps flowing. Order is lost, and there are more topics to run. Choose it when throughput matters more than per-key order.</li>
+        </ul>
+      </div></details>
+      <details class="qa"><summary>What's a poison pill and why does ErrorHandlingDeserializer matter?</summary><div class="a"><p>A record that can never be processed. If it can't even be <i>deserialized</i>, the failure happens inside <code>poll()</code>, before any listener or error handler runs, so the consumer fails on the same offset forever. <code>ErrorHandlingDeserializer</code> catches it, passes a null value plus the exception header to the container, and the error handler sends the raw record to the DLT.</p></div></details>
+      <details class="qa"><summary>What's in a DLT record and how do you replay it safely?</summary><div class="a">
+        <p>The original key and value, plus headers: original topic, partition, offset and timestamp, the consumer group, and the exception class, cause, message and stack trace.</p>
+        <p>To replay:</p>
+        <ol>
+          <li>Fix the cause.</li>
+          <li>Republish the value to the original topic (a small replay tool or endpoint).</li>
+        </ol>
+        <p>It's safe because consumers are idempotent. A record that arrives after the saga timed out is rejected by the state machine (FAILED is terminal) or triggers the refund path.</p>
+      </div></details>
+      <details class="qa"><summary>What if publishing to the DLT fails?</summary><div class="a"><p><code>RetryListener.recoveryFailed</code> logs it. The recoverer threw, so the offset isn't committed and the record is redelivered and goes through the retry cycle again. Nothing is silently dropped.</p></div></details>
+
+      <div class="qa-group">Data integrity</div>
+      <details class="qa"><summary>How do you prevent double booking of a seat?</summary><div class="a"><p>Optimistic locking with <code>@Version</code> (diagram 7.6). The loser gets <code>ObjectOptimisticLockingFailureException</code>, rolls back (including its idempotency row), is retried by the error handler, sees the seat LOCKED and publishes <code>reserved=false</code>. Alternatives: <code>SELECT … FOR UPDATE</code> (pessimistic), a unique constraint on (show, seat, active booking), or partitioning by <code>showId</code> so one consumer owns a show (serializes all of that show's bookings).</p></div></details>
+      <details class="qa"><summary>How do you implement an idempotent consumer?</summary><div class="a">
+        <ul>
+          <li>A dedup table keyed by event identity (business key here; an event id is better), inserted <b>in the same DB transaction</b> as the business change.</li>
+          <li>On a duplicate, skip the DB work, but <b>re-emit the outcome</b> so a lost downstream event is recovered.</li>
+          <li>Make updates naturally idempotent where possible: state machines, "set status" instead of "increment".</li>
+          <li>Clean old rows up with a TTL.</li>
+        </ul>
+      </div></details>
+      <details class="qa"><summary>What is optimistic locking and how does @Version implement it?</summary><div class="a">
+        <p>Optimistic locking takes no lock when reading. Instead it checks at write time that the row is unchanged, and rejects the write if not. JPA's <code>@Version</code> adds a version column that Hibernate puts into every update: <code>UPDATE … SET …, version = 8 WHERE id = ? AND version = 7</code>.</p>
+        <ul>
+          <li><b>1 row updated:</b> success.</li>
+          <li><b>0 rows updated:</b> someone else changed the row first, so Hibernate throws <code>OptimisticLockException</code> (Spring: <code>ObjectOptimisticLockingFailureException</code>) and the transaction rolls back.</li>
+          <li><b>Here</b>, the Kafka error handler retries the losing booking. It re-reads the seat, sees it LOCKED, and fails that booking.</li>
+          <li><b>Pessimistic locking</b> (<code>SELECT … FOR UPDATE</code>) makes the second transaction wait instead. Choose it for heavy contention on the same rows.</li>
+        </ul>
+        <p>Full walkthrough: <a href="#optimistic-locking">7.6.1</a>.</p>
+      </div></details>
+      <details class="qa"><summary>When would you use pessimistic locking, and how in JPA?</summary><div class="a">
+        <ul>
+          <li><b>When conflicts are frequent</b> (many users fighting for the same rows), or when a conflict retry is expensive. Waiting is then cheaper than failing and retrying.</li>
+          <li><b>How:</b> <code>@Lock(LockModeType.PESSIMISTIC_WRITE)</code> on a repository query, which produces <code>SELECT … FOR UPDATE</code>. It must run inside <code>@Transactional</code>, because the lock is held until commit.</li>
+          <li><b>Risks:</b> lock waits (a timeout raises <code>CannotAcquireLockException</code>), deadlocks (always lock rows in the same order), and connection-pool exhaustion while transactions wait.</li>
+          <li><b>MySQL specifics:</b> index the lookup, or InnoDB locks every row it scans. Use <code>NOWAIT</code> to fail fast, and <code>SKIP LOCKED</code> for work queues.</li>
+        </ul>
+        <p>Full walkthrough: <a href="#pessimistic-locking">7.6.2</a>.</p>
+      </div></details>
+      <details class="qa"><summary>How do you make a POST idempotent?</summary><div class="a">
+        <ul>
+          <li>The client sends an <code>Idempotency-Key</code>, stored with a unique constraint.</li>
+          <li>Same key + same body: return the stored result.</li>
+          <li>Same key + different body: 422.</li>
+          <li>Concurrent duplicates: the unique constraint decides the winner, and the loser gets 409 Conflict and retries with the same key (as the IETF Idempotency-Key draft recommends).</li>
+          <li>Keys should expire after a while (24h is common).</li>
+        </ul>
+      </div></details>
+      <details class="qa"><summary>Why not use System.currentTimeMillis() or a short code as an ID?</summary><div class="a"><p>Two requests in the same millisecond collide on the primary key, and IDs from different instances are not coordinated. Eight hex characters is only 2^32 values, so by the birthday paradox collisions become likely after about 65k bookings. Use DB sequences or identity columns for internal keys, UUIDs (or ULIDs/UUIDv7 for index locality) for public IDs, and enforce uniqueness with a constraint.</p></div></details>
+
+      <details class="qa"><summary>Why database per service? Did sharing one ever bite you?</summary><div class="a">
+        <p>Yes, in this project. Booking and seat inventory shared the <code>javatechie</code> schema and, through it, one <code>processed_event</code> table. Both consume <code>payment-events</code> and build the same idempotency key, <code>PAYMENT_COMPLETED:&lt;id&gt;</code>. Seat inventory inserted it first, so booking's duplicate check found that row and skipped the event. The seat ended up RESERVED while the booking stayed SEATS_LOCKED.</p>
+        <p>Database per service fixes this whole class of bug:</p>
+        <ul>
+          <li>Each service owns its schema, so no hidden coupling through shared tables.</li>
+          <li>Each service can change, scale or replace its store on its own.</li>
+          <li>Per-service DB users enforce the boundary.</li>
+        </ul>
+        <p>Trade-off: no joins or ACID transactions across services. That's why you need sagas, events, and data replicated through events (CQRS read models) for cross-service queries.</p>
+        <p>Lesson for idempotency: a dedup key must be unique within the <b>consumer's own</b> scope. Different consumers of the same event need separate stores, or a consumer prefix in the key.</p>
+      </div></details>
+
+      <details class="qa"><summary>How do you retry a failed HTTP call safely?</summary><div class="a">
+        <ul>
+          <li><b>Classify the error.</b> Retry only what can succeed later: 5xx, 408, 429, 409 ("in progress"), timeouts and connection errors. Never retry 400, 404 or 422, because the same request fails the same way.</li>
+          <li><b>Back off exponentially</b> (1s, 2s, 4s here; add jitter in production) and cap the number of attempts (3 retries), so a struggling service isn't hammered.</li>
+          <li><b>Make the call idempotent.</b> Reuse the <b>same Idempotency-Key</b> on every retry. If the first attempt actually succeeded but its response was lost, the retry returns that booking instead of creating a second one.</li>
+          <li><b>Don't drop what still fails.</b> Park it in a DLT (<code>booking-request-dlt</code>) with everything needed to inspect or replay it, and alert on it.</li>
+          <li><b>In production:</b> Resilience4j (<code>Retry</code> + <code>CircuitBreaker</code>) or Spring Retry rather than a hand-written loop.</li>
+        </ul>
+      </div></details>
+      <details class="qa"><summary>How did you prove there's no double booking under concurrency?</summary><div class="a">
+        <p>With <code>BookingLoadSimulator</code> (section 15):</p>
+        <ul>
+          <li>It releases 10–15 requests for the same 3 seats at the same instant: a <code>CountDownLatch</code> gate, with one virtual thread per user.</li>
+          <li>After the saga settles, it reads every booking's status and asserts that each seat has at most one CONFIRMED booking.</li>
+          <li>What makes this hold is optimistic locking on <code>seat_inventory</code> (<code>@Version</code>) plus the saga. The loser of a race is retried by the Kafka error handler, sees the seat LOCKED, and its booking fails.</li>
+          <li>In a real test suite the same idea runs as a Testcontainers test, with Awaitility for the async assertion.</li>
+        </ul>
+      </div></details>
+
+      <div class="qa-group">Operations &amp; design</div>
+      <details class="qa"><summary>How do you handle errors in a Spring REST API?</summary><div class="a">
+        <ul>
+          <li>Keep controllers free of try/catch. Use one <code>@RestControllerAdvice</code> with an <code>@ExceptionHandler</code> per exception type.</li>
+          <li>Extend <code>ResponseEntityExceptionHandler</code> so Spring MVC's own errors (missing header, validation, unreadable body) get consistent 4xx responses for free.</li>
+          <li>Return RFC 9457 <code>ProblemDetail</code> (<code>type</code>, <code>title</code>, <code>status</code>, <code>detail</code>, <code>instance</code>).</li>
+          <li>Map domain exceptions to precise statuses: 422 (key reused), 409 (concurrent duplicate).</li>
+          <li>Have a final <code>Exception</code> handler that logs the stack trace and returns a generic 500, so internals never leak to the client.</li>
+        </ul>
+      </div></details>
+      <details class="qa"><summary>How do you scale consumers?</summary><div class="a">
+        <ul>
+          <li>Parallelism is capped by the partition count: 3 here, so at most 3 consumers per group are active.</li>
+          <li>Set <code>spring.kafka.listener.concurrency</code> (default 1) and/or run more instances.</li>
+          <li>Rebalances reassign partitions. Uncommitted transactions abort, and idempotency covers the replay.</li>
+          <li>Keep processing time plus backoff below <code>max.poll.interval.ms</code>.</li>
+        </ul>
+      </div></details>
+      <details class="qa"><summary>How would you observe and debug a saga in production?</summary><div class="a">
+        <ul>
+          <li>Correlation or trace id propagated in Kafka headers (Micrometer Tracing + OpenTelemetry).</li>
+          <li>Saga state queryable per booking.</li>
+          <li>Metrics: consumer lag, retry count, DLT rate, outbox backlog (unsent rows, oldest age), stuck LOCKED seats.</li>
+          <li>Alerts on DLT &gt; 0 and an outbox age above a threshold.</li>
+          <li>Structured logs keyed by <code>bookingId</code>.</li>
+        </ul>
+      </div></details>
+      <details class="qa"><summary>How do you evolve event schemas without breaking consumers?</summary><div class="a"><p>Add only optional fields, never rename or remove fields in place, and version events (<code>v</code> field or type). Better: Avro or Protobuf with a Schema Registry and BACKWARD/FORWARD compatibility checks in CI. Also restrict <code>spring.json.trusted.packages</code>: <code>*</code> plus type headers lets a producer choose which class you deserialize into.</p></div></details>
+      <details class="qa"><summary>How would you test this?</summary><div class="a"><p>Testcontainers (Kafka + MySQL) or <code>@EmbeddedKafka</code>. One test per flow: happy path, payment declined, seats taken, poison message lands in the DLT, transient failure recovers, duplicate delivery doesn't double-apply, concurrent bookings of one seat, lock expiry, outbox re-send after a crash, Idempotency-Key replay and 422. Use Awaitility for async assertions. Add contract tests for event schemas.</p></div></details>
+      <details class="qa"><summary>Several instances run the schedulers and the outbox relay. Is that a problem?</summary><div class="a"><p>It's correct but wasteful: duplicate sends and sweeps are absorbed by idempotency, re-checks and <code>@Version</code>. To avoid it, use ShedLock (one instance runs each job), <code>SELECT … FOR UPDATE SKIP LOCKED</code> in the relay so instances split the rows, or replace polling with Debezium CDC.</p></div></details>
+    </section>
+
+    <!-- ============================================================ 12 -->
+    <section id="gaps">
+      <h2><span class="num">12</span>Known gaps &amp; next steps</h2>
+      <p>Gaps 1–7 of the production review are fixed: double booking, saga completion, the booking state machine, saga timeouts, the outbox, IDs and the Idempotency-Key. Also done since then: a global exception handler with <code>ProblemDetail</code>, and a database per service. These remain:</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Gap</th><th>Suggested fix</th></tr></thead>
+        <tbody>
+          <tr><td class="n">8</td><td>Events have no <code>eventId</code>, timestamp or version</td><td>An event envelope <code>{eventId, type, version, occurredAt, payload}</code>; dedup on <code>eventId</code></td></tr>
+          <tr><td class="n">9</td><td>Re-published duplicates could double-charge a real gateway</td><td>Pass <code>bookingId</code> as the gateway's idempotency key</td></tr>
+          <tr><td class="n">10</td><td><code>seat-reserved-topic</code> carries both "locked" and "released"</td><td>A separate <code>SeatsReleased</code> event or topic</td></tr>
+          <tr><td class="n">11</td><td>The DLT is only logged</td><td>Replay tool, alerting, retention policy</td></tr>
+          <tr><td class="n">12</td><td>Blocking retries hold up the partition</td><td><code>@RetryableTopic</code> if throughput matters more than order</td></tr>
+          <tr><td class="n">13</td><td>Listener concurrency is 1 with 3 partitions</td><td><code>spring.kafka.listener.concurrency: 3</code></td></tr>
+          <tr><td class="n">14</td><td><code>trusted.packages: "*"</code></td><td>Trust <code>com.javatechie.events</code> only, or Avro + Schema Registry</td></tr>
+          <tr><td class="n">15</td><td>The request body isn't validated (the header is, and <code>GlobalExceptionHandler</code> returns <code>ProblemDetail</code>)</td><td>Bean Validation annotations on <code>BookingRequest</code> + <code>@Valid</code></td></tr>
+          <tr><td class="n">16</td><td><code>ddl-auto: update</code>, <code>root/root</code> in YAML, both services use the same DB user</td><td>Flyway or Liquibase; secrets from env or a vault; one MySQL user per service with grants on its own database</td></tr>
+          <tr><td class="n">17</td><td><code>processed_event</code> grows forever</td><td>TTL cleanup job</td></tr>
+          <tr><td class="n">–</td><td>Refund is only logged</td><td>A <code>RefundRequested</code> event handled by payment</td></tr>
+          <tr><td class="n">–</td><td>No Actuator, tracing or real tests</td><td>Actuator + Micrometer Tracing; Testcontainers suite (see Q&amp;A)</td></tr>
+          <tr><td class="n">–</td><td>Schedulers and relay run on every instance</td><td>ShedLock or <code>SKIP LOCKED</code></td></tr>
+          <tr><td class="n">–</td><td>Old copies of the tables still sit in <code>javatechie</code></td><td>Drop them once the split is verified</td></tr>
+          <tr><td class="n">–</td><td>Simulator HTTP retry is a hand-written loop without jitter</td><td>Resilience4j <code>Retry</code> (+ jitter, circuit breaker) for real service-to-service calls</td></tr>
+          <tr><td class="n">–</td><td><code>booking-request-dlt</code> is only logged</td><td>Replay endpoint that re-posts the request with its original Idempotency-Key</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- ============================================================ 13 -->
+    <section id="data-model">
+      <h2><span class="num">13</span>Data model (ER diagrams)</h2>
+      <p>Two databases, one per service (<a href="#db-per-service">7.8</a>). Inside a database, relationships can be real foreign keys. <b>Across</b> databases there are none. <code>seat_inventory.currentBookingId</code> refers to <code>booking.bookingCode</code> only logically, and the two are kept consistent by events, not by the database.</p>
+      <div class="diagram">
+<svg viewBox="0 0 1000 580" role="img" aria-labelledby="dER-t">
+<title id="dER-t">ER diagram: booking_db and seat_inventory_db</title>
+<rect x="12" y="52" width="566" height="518" rx="10" fill="#f8fbff" stroke="#1d6cf2" stroke-dasharray="5 5"/>
+<text x="295" y="76" class="lbl b" text-anchor="middle">booking_db · booking-service</text>
+<rect x="605" y="52" width="383" height="518" rx="10" fill="#f6fdf9" stroke="#10a37f" stroke-dasharray="5 5"/>
+<text x="796" y="76" class="lbl b" text-anchor="middle">seat_inventory_db · seat-inventory-service</text>
+<path d="M285 135 L316 135" class="flow solid thin"/>
+<text x="290" y="129" class="lbl dim" text-anchor="start">1</text>
+<text x="306" y="129" class="lbl dim" text-anchor="start">N</text>
+<path d="M157 375 L157 315" class="flow thin"/>
+<text x="167" y="337" class="lbl dim" text-anchor="start">aggregateId = bookingCode (logical)</text>
+<path d="M797 405 L797 335" class="flow thin"/>
+<text x="807" y="357" class="lbl dim" text-anchor="start">eventKey contains bookingId</text>
+<path d="M625 255 H 592 V 30 H 157 V 91" class="flow p"/>
+<text x="375" y="24" class="lbl b" fill="#8b5cf6" text-anchor="middle" style="fill:#7c3aed">seat_inventory.currentBookingId ⇢ booking.bookingCode · cross-service: no FK, kept in sync by events</text>
+<rect x="30" y="95" width="255" height="216" rx="8" fill="#ffffff" stroke="#1d6cf2" stroke-width="2"/>
+<rect x="31" y="96" width="253" height="28" rx="7" fill="#eff6ff"/>
+<path d="M31 124 H284" stroke="#1d6cf2" stroke-width="1.2"/>
+<text x="40" y="114" class="er-t">booking</text>
+<text x="40" y="139" class="er-f" fill="#d97706">PK</text>
+<text x="70" y="139" class="er-c">id</text>
+<text x="275" y="139" class="er-ty">BIGINT</text>
+<text x="70" y="159" class="er-c">bookingCode</text>
+<text x="275" y="159" class="er-ty">VARCHAR(36)</text>
+<text x="40" y="179" class="er-f" fill="#10a37f">UQ</text>
+<text x="70" y="179" class="er-c">idempotencyKey</text>
+<text x="275" y="179" class="er-ty">VARCHAR(100)</text>
+<text x="70" y="199" class="er-c">showId</text>
+<text x="275" y="199" class="er-ty">VARCHAR</text>
+<text x="70" y="219" class="er-c">userId</text>
+<text x="275" y="219" class="er-ty">VARCHAR</text>
+<text x="70" y="239" class="er-c">status</text>
+<text x="275" y="239" class="er-ty">VARCHAR · enum</text>
+<text x="70" y="259" class="er-c">amount</text>
+<text x="275" y="259" class="er-ty">BIGINT</text>
+<text x="70" y="279" class="er-c">createdAt</text>
+<text x="275" y="279" class="er-ty">DATETIME(6)</text>
+<text x="40" y="299" class="er-f" fill="#64748b">V</text>
+<text x="70" y="299" class="er-c">version</text>
+<text x="275" y="299" class="er-ty">BIGINT · @Version</text>
+<rect x="320" y="95" width="240" height="76" rx="8" fill="#ffffff" stroke="#475569" stroke-width="2"/>
+<rect x="321" y="96" width="238" height="28" rx="7" fill="#f1f5f9"/>
+<path d="M321 124 H559" stroke="#475569" stroke-width="1.2"/>
+<text x="330" y="114" class="er-t">booking_seatids</text>
+<text x="330" y="139" class="er-f" fill="#1d6cf2">FK</text>
+<text x="360" y="139" class="er-c">Booking_id</text>
+<text x="550" y="139" class="er-ty">BIGINT → booking.id</text>
+<text x="360" y="159" class="er-c">seatIds</text>
+<text x="550" y="159" class="er-ty">VARCHAR</text>
+<rect x="320" y="215" width="240" height="56" rx="8" fill="#ffffff" stroke="#475569" stroke-width="2"/>
+<rect x="321" y="216" width="238" height="28" rx="7" fill="#f1f5f9"/>
+<path d="M321 244 H559" stroke="#475569" stroke-width="1.2"/>
+<text x="330" y="234" class="er-t">booking_seq</text>
+<text x="360" y="259" class="er-c">next_val</text>
+<text x="550" y="259" class="er-ty">BIGINT · next id</text>
+<rect x="30" y="375" width="255" height="176" rx="8" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<rect x="31" y="376" width="253" height="28" rx="7" fill="#fffbeb"/>
+<path d="M31 404 H284" stroke="#d97706" stroke-width="1.2"/>
+<text x="40" y="394" class="er-t">outbox_event</text>
+<text x="40" y="419" class="er-f" fill="#d97706">PK</text>
+<text x="70" y="419" class="er-c">id</text>
+<text x="275" y="419" class="er-ty">VARCHAR · event UUID</text>
+<text x="70" y="439" class="er-c">aggregateId</text>
+<text x="275" y="439" class="er-ty">= bookingCode</text>
+<text x="70" y="459" class="er-c">topic</text>
+<text x="275" y="459" class="er-ty">VARCHAR</text>
+<text x="70" y="479" class="er-c">eventType</text>
+<text x="275" y="479" class="er-ty">class name</text>
+<text x="70" y="499" class="er-c">payload</text>
+<text x="275" y="499" class="er-ty">TEXT · JSON</text>
+<text x="70" y="519" class="er-c">createdAt</text>
+<text x="275" y="519" class="er-ty">DATETIME(6)</text>
+<text x="40" y="539" class="er-f" fill="#8b5cf6">IDX</text>
+<text x="70" y="539" class="er-c">sentAt</text>
+<text x="275" y="539" class="er-ty">NULL = unsent</text>
+<rect x="320" y="375" width="240" height="76" rx="8" fill="#ffffff" stroke="#8b5cf6" stroke-width="2"/>
+<rect x="321" y="376" width="238" height="28" rx="7" fill="#f5f3ff"/>
+<path d="M321 404 H559" stroke="#8b5cf6" stroke-width="1.2"/>
+<text x="330" y="394" class="er-t">booking_processed_event</text>
+<text x="330" y="419" class="er-f" fill="#d97706">PK</text>
+<text x="360" y="419" class="er-c">eventKey</text>
+<text x="550" y="419" class="er-ty">TYPE:bookingCode</text>
+<text x="360" y="439" class="er-c">processedAt</text>
+<text x="550" y="439" class="er-ty">DATETIME(6)</text>
+<rect x="625" y="95" width="345" height="236" rx="8" fill="#ffffff" stroke="#10a37f" stroke-width="2"/>
+<rect x="626" y="96" width="343" height="28" rx="7" fill="#ecfdf5"/>
+<path d="M626 124 H969" stroke="#10a37f" stroke-width="1.2"/>
+<text x="635" y="114" class="er-t">seat_inventory</text>
+<text x="635" y="139" class="er-f" fill="#d97706">PK</text>
+<text x="665" y="139" class="er-c">id</text>
+<text x="960" y="139" class="er-ty">BIGINT · AUTO_INCREMENT</text>
+<text x="665" y="159" class="er-c">theaterId</text>
+<text x="960" y="159" class="er-ty">VARCHAR</text>
+<text x="665" y="179" class="er-c">showId</text>
+<text x="960" y="179" class="er-ty">VARCHAR</text>
+<text x="665" y="199" class="er-c">screenId</text>
+<text x="960" y="199" class="er-ty">VARCHAR</text>
+<text x="665" y="219" class="er-c">seatNumber</text>
+<text x="960" y="219" class="er-ty">VARCHAR</text>
+<text x="665" y="239" class="er-c">status</text>
+<text x="960" y="239" class="er-ty">ENUM(AVAILABLE,LOCKED,RESERVED)</text>
+<text x="665" y="259" class="er-c">currentBookingId</text>
+<text x="960" y="259" class="er-ty">VARCHAR · = bookingCode</text>
+<text x="665" y="279" class="er-c">lockedUntil</text>
+<text x="960" y="279" class="er-ty">DATETIME(6) · lock TTL</text>
+<text x="635" y="299" class="er-f" fill="#64748b">V</text>
+<text x="665" y="299" class="er-c">version</text>
+<text x="960" y="299" class="er-ty">BIGINT · @Version</text>
+<text x="665" y="319" class="er-c">lastUpdated</text>
+<text x="960" y="319" class="er-ty">DATETIME(6)</text>
+<rect x="625" y="405" width="345" height="76" rx="8" fill="#ffffff" stroke="#8b5cf6" stroke-width="2"/>
+<rect x="626" y="406" width="343" height="28" rx="7" fill="#f5f3ff"/>
+<path d="M626 434 H969" stroke="#8b5cf6" stroke-width="1.2"/>
+<text x="635" y="424" class="er-t">processed_event</text>
+<text x="635" y="449" class="er-f" fill="#d97706">PK</text>
+<text x="665" y="449" class="er-c">eventKey</text>
+<text x="960" y="449" class="er-ty">TYPE:bookingId</text>
+<text x="665" y="469" class="er-c">processedAt</text>
+<text x="960" y="469" class="er-ty">DATETIME(6)</text>
+</svg>
+      </div>
+      <p class="muted">Flags: <b style="color:#d97706">PK</b> primary key · <b style="color:#1d6cf2">FK</b> foreign key · <b style="color:#10a37f">UQ</b> unique · <b style="color:#8b5cf6">IDX</b> index · <b style="color:#64748b">V</b> optimistic-lock version. Solid line = real FK; dashed = logical reference (no constraint).</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Relationship</th><th>Kind</th><th>Enforced by</th></tr></thead>
+        <tbody>
+          <tr><td><code>booking</code> 1 ── N <code>booking_seatids</code></td><td>Real FK <code>Booking_id → booking.id</code> (from <code>@ElementCollection</code>)</td><td>MySQL</td></tr>
+          <tr><td><code>booking_seq.next_val</code> → <code>booking.id</code></td><td>Id generator (sequence emulated as a table, <code>allocationSize=50</code>)</td><td>Hibernate</td></tr>
+          <tr><td><code>outbox_event.aggregateId</code> → <code>booking.bookingCode</code></td><td>Logical, written in the same transaction as the booking</td><td>Application (<code>BookingEventProducer</code>)</td></tr>
+          <tr><td><code>booking_processed_event.eventKey</code> → booking</td><td>Logical: key is <code>TYPE:bookingCode</code></td><td>Application</td></tr>
+          <tr><td><code>processed_event.eventKey</code> → seat booking</td><td>Logical: key is <code>TYPE:bookingId</code></td><td>Application</td></tr>
+          <tr><td><code>seat_inventory.currentBookingId</code> → <code>booking.bookingCode</code></td><td><b>Cross-service</b>, logical</td><td>Events (saga); no FK possible across databases</td></tr>
+        </tbody>
+      </table></div>
+      <div class="callout warn"><b>Schema vs entity</b><code>Booking.bookingCode</code> is declared <code>unique = true</code>, but the existing <code>booking</code> table has no unique index on it, because <code>ddl-auto: update</code> doesn't add constraints to existing columns. The diagram shows the real schema. A Flyway migration (gap #16) should add <code>UNIQUE(bookingCode)</code>, which also gives <code>GET /bookings/{id}</code> an index.</div>
+    </section>
+
+    <!-- ============================================================ 14 -->
+    <section id="class-diagrams">
+      <h2><span class="num">14</span>Class diagrams</h2>
+      <p>Each service follows the same layering: <b>entry points</b> (REST controller, Kafka listeners, schedulers) → <b>service</b> (business rules + local transaction) → <b>repositories / producers</b> → <b>entities</b>. Only producers talk to Kafka, and only repositories talk to MySQL.</p>
+      <p class="muted">Legend: solid arrow = calls / depends on · dashed arrow = repository manages entity ·
+<span style="color:#1d6cf2">blue</span> entry points (REST, Kafka listeners, schedulers) · <span style="color:#10a37f">green</span> services ·
+<span style="color:#8b5cf6">purple</span> messaging · <span style="color:#d97706">amber</span> repositories · <span style="color:#475569">grey</span> entities / enums ·
+<span style="color:#ef4444">red</span> error handling.</p>
+
+      <h3>booking-service</h3>
+      <div class="diagram">
+<svg viewBox="0 0 1000 690" role="img" aria-labelledby="dCB-t">
+<title id="dCB-t">booking-service class diagram</title>
+<path d="M130 106 L204 190" class="flow solid thin"/>
+<path d="M357 106 L288 190" class="flow solid thin"/>
+<path d="M588 106 L400 214" class="flow solid thin"/>
+<path d="M400 244 L440 229" class="flow solid thin"/>
+<path d="M190 310 L128 390" class="flow solid thin"/>
+<path d="M316 310 L375 390" class="flow solid thin"/>
+<path d="M555 276 L594 390" class="flow solid thin"/>
+<path d="M791 276 L684 390" class="flow solid thin"/>
+<path d="M926 276 L872 390" class="flow solid thin"/>
+<path d="M128 476 L128 545" class="flow thin"/>
+<path d="M375 459 L375 545" class="flow thin"/>
+<path d="M628 476 L628 545" class="flow thin"/>
+<rect x="20" y="20" width="220" height="86" rx="8" fill="#ffffff" stroke="#1d6cf2" stroke-width="2"/>
+<path d="M21 60 H239" stroke="#1d6cf2" stroke-width="1.2"/>
+<rect x="21" y="21" width="218" height="39" rx="7" fill="#eff6ff"/>
+<text x="130.0" y="35" class="cd-st">«RestController»</text>
+<text x="130.0" y="53" class="cd-n">BookingController</text>
+<text x="30" y="78" class="cd-m">POST bookSeat(req, key)</text>
+<text x="30" y="95" class="cd-m">GET getBooking(id)</text>
+<rect x="265" y="20" width="230" height="86" rx="8" fill="#ffffff" stroke="#1d6cf2" stroke-width="2"/>
+<path d="M266 60 H494" stroke="#1d6cf2" stroke-width="1.2"/>
+<rect x="266" y="21" width="228" height="39" rx="7" fill="#eff6ff"/>
+<text x="380.0" y="35" class="cd-st">«KafkaListener»</text>
+<text x="380.0" y="53" class="cd-n">MovieBookingListener</text>
+<text x="275" y="78" class="cd-m">consumeSeatReserveEvents()</text>
+<text x="275" y="95" class="cd-m">consumePaymentEvents()</text>
+<rect x="520" y="20" width="225" height="86" rx="8" fill="#ffffff" stroke="#1d6cf2" stroke-width="2"/>
+<path d="M521 60 H744" stroke="#1d6cf2" stroke-width="1.2"/>
+<rect x="521" y="21" width="223" height="39" rx="7" fill="#eff6ff"/>
+<text x="632.5" y="35" class="cd-st">«Scheduled»</text>
+<text x="632.5" y="53" class="cd-n">BookingTimeoutScheduler</text>
+<text x="530" y="78" class="cd-m">failStalePendingBookings()</text>
+<text x="530" y="95" class="cd-m">reads BookingRepository</text>
+<rect x="770" y="20" width="210" height="86" rx="8" fill="#ffffff" stroke="#ef4444" stroke-width="2"/>
+<path d="M771 60 H979" stroke="#ef4444" stroke-width="1.2"/>
+<rect x="771" y="21" width="208" height="39" rx="7" fill="#fef2f2"/>
+<text x="875.0" y="35" class="cd-st">«RestControllerAdvice»</text>
+<text x="875.0" y="53" class="cd-n">GlobalExceptionHandler</text>
+<text x="780" y="78" class="cd-m">404 · 409 · 422 · 500</text>
+<text x="780" y="95" class="cd-m">ProblemDetail</text>
+<rect x="120" y="190" width="280" height="120" rx="8" fill="#ffffff" stroke="#10a37f" stroke-width="2"/>
+<path d="M121 230 H399" stroke="#10a37f" stroke-width="1.2"/>
+<rect x="121" y="191" width="278" height="39" rx="7" fill="#ecfdf5"/>
+<text x="260.0" y="205" class="cd-st">«Service»</text>
+<text x="260.0" y="223" class="cd-n">BookingService</text>
+<text x="130" y="248" class="cd-m">bookSeats(req, key)</text>
+<text x="130" y="265" class="cd-m">getBooking(id)</text>
+<text x="130" y="282" class="cd-m">handleBookingOn…(id)  ×4</text>
+<text x="130" y="299" class="cd-m">expirePendingBooking(id)</text>
+<rect x="440" y="190" width="230" height="86" rx="8" fill="#ffffff" stroke="#8b5cf6" stroke-width="2"/>
+<path d="M441 230 H669" stroke="#8b5cf6" stroke-width="1.2"/>
+<rect x="441" y="191" width="228" height="39" rx="7" fill="#f5f3ff"/>
+<text x="555.0" y="205" class="cd-st">«Component»</text>
+<text x="555.0" y="223" class="cd-n">BookingEventProducer</text>
+<text x="450" y="248" class="cd-m">publishBookingEvents(evt)</text>
+<text x="450" y="265" class="cd-m">→ outbox row (MANDATORY tx)</text>
+<rect x="710" y="190" width="270" height="86" rx="8" fill="#ffffff" stroke="#8b5cf6" stroke-width="2"/>
+<path d="M711 230 H979" stroke="#8b5cf6" stroke-width="1.2"/>
+<rect x="711" y="191" width="268" height="39" rx="7" fill="#f5f3ff"/>
+<text x="845.0" y="205" class="cd-st">«Scheduled»</text>
+<text x="845.0" y="223" class="cd-n">OutboxRelay</text>
+<text x="720" y="248" class="cd-m">publishPendingEvents()  every 1s</text>
+<text x="720" y="265" class="cd-m">deleteOldSentEvents()</text>
+<rect x="20" y="390" width="215" height="86" rx="8" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<path d="M21 430 H234" stroke="#d97706" stroke-width="1.2"/>
+<rect x="21" y="391" width="213" height="39" rx="7" fill="#fffbeb"/>
+<text x="127.5" y="405" class="cd-st">«JpaRepository»</text>
+<text x="127.5" y="423" class="cd-n">BookingRepository</text>
+<text x="30" y="448" class="cd-m">findByBookingCode()</text>
+<text x="30" y="465" class="cd-m">findByIdempotencyKey()</text>
+<rect x="260" y="390" width="230" height="69" rx="8" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<path d="M261 430 H489" stroke="#d97706" stroke-width="1.2"/>
+<rect x="261" y="391" width="228" height="39" rx="7" fill="#fffbeb"/>
+<text x="375.0" y="405" class="cd-st">«JpaRepository»</text>
+<text x="375.0" y="423" class="cd-n">ProcessedEventRepository</text>
+<text x="270" y="448" class="cd-m">existsById(key)</text>
+<rect x="515" y="390" width="225" height="86" rx="8" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<path d="M516 430 H739" stroke="#d97706" stroke-width="1.2"/>
+<rect x="516" y="391" width="223" height="39" rx="7" fill="#fffbeb"/>
+<text x="627.5" y="405" class="cd-st">«JpaRepository»</text>
+<text x="627.5" y="423" class="cd-n">OutboxEventRepository</text>
+<text x="525" y="448" class="cd-m">findTop100BySentAtIsNull…()</text>
+<text x="525" y="465" class="cd-m">markSent() · deleteSentBefore()</text>
+<rect x="765" y="390" width="215" height="69" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 4"/>
+<path d="M766 430 H979" stroke="#94a3b8" stroke-width="1.2"/>
+<rect x="766" y="391" width="213" height="39" rx="7" fill="#ffffff"/>
+<text x="872.5" y="405" class="cd-st">spring-kafka</text>
+<text x="872.5" y="423" class="cd-n">KafkaTemplate</text>
+<text x="775" y="448" class="cd-m">executeInTransaction()</text>
+<rect x="20" y="545" width="215" height="103" rx="8" fill="#ffffff" stroke="#475569" stroke-width="2"/>
+<path d="M21 585 H234" stroke="#475569" stroke-width="1.2"/>
+<rect x="21" y="546" width="213" height="39" rx="7" fill="#f1f5f9"/>
+<text x="127.5" y="560" class="cd-st">«Entity» booking</text>
+<text x="127.5" y="578" class="cd-n">Booking</text>
+<text x="30" y="603" class="cd-m">status : BookingStatus</text>
+<text x="30" y="620" class="cd-m">bookingCode, idempotencyKey</text>
+<text x="30" y="637" class="cd-m">seatIds, version</text>
+<rect x="260" y="545" width="230" height="69" rx="8" fill="#ffffff" stroke="#475569" stroke-width="2"/>
+<path d="M261 585 H489" stroke="#475569" stroke-width="1.2"/>
+<rect x="261" y="546" width="228" height="39" rx="7" fill="#f1f5f9"/>
+<text x="375.0" y="560" class="cd-st">«Entity» booking_processed_event</text>
+<text x="375.0" y="578" class="cd-n">ProcessedEvent</text>
+<text x="270" y="603" class="cd-m">eventKey, processedAt</text>
+<rect x="515" y="545" width="225" height="86" rx="8" fill="#ffffff" stroke="#475569" stroke-width="2"/>
+<path d="M516 585 H739" stroke="#475569" stroke-width="1.2"/>
+<rect x="516" y="546" width="223" height="39" rx="7" fill="#f1f5f9"/>
+<text x="627.5" y="560" class="cd-st">«Entity» outbox_event</text>
+<text x="627.5" y="578" class="cd-n">OutboxEvent</text>
+<text x="525" y="603" class="cd-m">aggregateId, topic, payload</text>
+<text x="525" y="620" class="cd-m">sentAt</text>
+<rect x="765" y="545" width="215" height="103" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="2"/>
+<path d="M766 585 H979" stroke="#64748b" stroke-width="1.2"/>
+<rect x="766" y="546" width="213" height="39" rx="7" fill="#f8fafc"/>
+<text x="872.5" y="560" class="cd-st">«enum»</text>
+<text x="872.5" y="578" class="cd-n">BookingStatus</text>
+<text x="775" y="603" class="cd-m">PENDING · SEATS_LOCKED</text>
+<text x="775" y="620" class="cd-m">CONFIRMED · FAILED</text>
+<text x="775" y="637" class="cd-m">canMoveTo(next)</text>
+<text x="20" y="680" class="lbl dim" text-anchor="start">also: KafkaConfig · DeadLetterListener (*-dlt + booking-request-dlt) · OpenApiConfig · mappers · BookingLoadSimulator (section 15)</text>
+</svg>
+      </div>
+
+      <h3>seat-inventory-service</h3>
+      <div class="diagram">
+<svg viewBox="0 0 1000 690" role="img" aria-labelledby="dCS-t">
+<title id="dCS-t">seat-inventory-service class diagram</title>
+<path d="M132 89 L216 175" class="flow solid thin"/>
+<path d="M364 89 L332 175" class="flow solid thin"/>
+<path d="M598 106 L480 193" class="flow solid thin"/>
+<path d="M480 235 L560 210" class="flow solid thin"/>
+<path d="M216 295 L176 375" class="flow solid thin"/>
+<path d="M364 295 L425 375" class="flow solid thin"/>
+<path d="M656 244 L690 375" class="flow solid thin"/>
+<path d="M900 375 L480 277" class="flow solid thin"/>
+<path d="M150 478 L150 530" class="flow thin"/>
+<path d="M425 444 L425 530" class="flow thin"/>
+<rect x="20" y="20" width="225" height="69" rx="8" fill="#ffffff" stroke="#1d6cf2" stroke-width="2"/>
+<path d="M21 60 H244" stroke="#1d6cf2" stroke-width="1.2"/>
+<rect x="21" y="21" width="223" height="39" rx="7" fill="#eff6ff"/>
+<text x="132.5" y="35" class="cd-st">«Listener» movie-booking-events</text>
+<text x="132.5" y="53" class="cd-n">SeatInventoryListener</text>
+<text x="30" y="78" class="cd-m">consumeBookingEvents()</text>
+<rect x="270" y="20" width="235" height="69" rx="8" fill="#ffffff" stroke="#1d6cf2" stroke-width="2"/>
+<path d="M271 60 H504" stroke="#1d6cf2" stroke-width="1.2"/>
+<rect x="271" y="21" width="233" height="39" rx="7" fill="#eff6ff"/>
+<text x="387.5" y="35" class="cd-st">«KafkaListener» payment-events</text>
+<text x="387.5" y="53" class="cd-n">PaymentStatusListener</text>
+<text x="280" y="78" class="cd-m">consumePaymentStatusEvents()</text>
+<rect x="530" y="20" width="225" height="86" rx="8" fill="#ffffff" stroke="#1d6cf2" stroke-width="2"/>
+<path d="M531 60 H754" stroke="#1d6cf2" stroke-width="1.2"/>
+<rect x="531" y="21" width="223" height="39" rx="7" fill="#eff6ff"/>
+<text x="642.5" y="35" class="cd-st">«Scheduled» every 30s</text>
+<text x="642.5" y="53" class="cd-n">SeatLockExpiryScheduler</text>
+<text x="540" y="78" class="cd-m">releaseExpiredLocks()</text>
+<text x="540" y="95" class="cd-m">reads SeatInventoryRepository</text>
+<rect x="780" y="20" width="200" height="69" rx="8" fill="#ffffff" stroke="#ef4444" stroke-width="2"/>
+<path d="M781 60 H979" stroke="#ef4444" stroke-width="1.2"/>
+<rect x="781" y="21" width="198" height="39" rx="7" fill="#fef2f2"/>
+<text x="880.0" y="35" class="cd-st">«KafkaListener» *-dlt</text>
+<text x="880.0" y="53" class="cd-n">DeadLetterListener</text>
+<text x="790" y="78" class="cd-m">consumeFailedRecord()</text>
+<rect x="150" y="175" width="330" height="120" rx="8" fill="#ffffff" stroke="#10a37f" stroke-width="2"/>
+<path d="M151 215 H479" stroke="#10a37f" stroke-width="1.2"/>
+<rect x="151" y="176" width="328" height="39" rx="7" fill="#ecfdf5"/>
+<text x="315.0" y="190" class="cd-st">«Service»</text>
+<text x="315.0" y="208" class="cd-n">SeatInventoryService</text>
+<text x="160" y="233" class="cd-m">handleBooking(evt)            lock</text>
+<text x="160" y="250" class="cd-m">confirmSeatsOnPaymentSuccess(id)</text>
+<text x="160" y="267" class="cd-m">releaseSeatsOnPaymentFailure(id)</text>
+<text x="160" y="284" class="cd-m">releaseExpiredLock(id)</text>
+<rect x="560" y="175" width="240" height="69" rx="8" fill="#ffffff" stroke="#8b5cf6" stroke-width="2"/>
+<path d="M561 215 H799" stroke="#8b5cf6" stroke-width="1.2"/>
+<rect x="561" y="176" width="238" height="39" rx="7" fill="#f5f3ff"/>
+<text x="680.0" y="190" class="cd-st">«Component»</text>
+<text x="680.0" y="208" class="cd-n">SeatReserveProducer</text>
+<text x="570" y="233" class="cd-m">publishSeatReserveEvents(evt)</text>
+<rect x="20" y="375" width="260" height="103" rx="8" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<path d="M21 415 H279" stroke="#d97706" stroke-width="1.2"/>
+<rect x="21" y="376" width="258" height="39" rx="7" fill="#fffbeb"/>
+<text x="150.0" y="390" class="cd-st">«JpaRepository»</text>
+<text x="150.0" y="408" class="cd-n">SeatInventoryRepository</text>
+<text x="30" y="433" class="cd-m">findByShowIdAndSeatNumberIn()</text>
+<text x="30" y="450" class="cd-m">findByCurrentBookingId()</text>
+<text x="30" y="467" class="cd-m">findByStatusAndLockedUntilBefore()</text>
+<rect x="310" y="375" width="230" height="69" rx="8" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<path d="M311 415 H539" stroke="#d97706" stroke-width="1.2"/>
+<rect x="311" y="376" width="228" height="39" rx="7" fill="#fffbeb"/>
+<text x="425.0" y="390" class="cd-st">«JpaRepository»</text>
+<text x="425.0" y="408" class="cd-n">ProcessedEventRepository</text>
+<text x="320" y="433" class="cd-m">existsById(key)</text>
+<rect x="580" y="375" width="220" height="69" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 4"/>
+<path d="M581 415 H799" stroke="#94a3b8" stroke-width="1.2"/>
+<rect x="581" y="376" width="218" height="39" rx="7" fill="#ffffff"/>
+<text x="690.0" y="390" class="cd-st">spring-kafka</text>
+<text x="690.0" y="408" class="cd-n">KafkaTemplate</text>
+<text x="590" y="433" class="cd-m">send() · in listener / DB tx</text>
+<rect x="820" y="375" width="160" height="86" rx="8" fill="#ffffff" stroke="#1d6cf2" stroke-width="2"/>
+<path d="M821 415 H979" stroke="#1d6cf2" stroke-width="1.2"/>
+<rect x="821" y="376" width="158" height="39" rx="7" fill="#eff6ff"/>
+<text x="900.0" y="390" class="cd-st">«RestController»</text>
+<text x="900.0" y="408" class="cd-n">SeatController</text>
+<text x="830" y="433" class="cd-m">GET /seats</text>
+<text x="830" y="450" class="cd-m">(read only)</text>
+<rect x="20" y="530" width="260" height="103" rx="8" fill="#ffffff" stroke="#475569" stroke-width="2"/>
+<path d="M21 570 H279" stroke="#475569" stroke-width="1.2"/>
+<rect x="21" y="531" width="258" height="39" rx="7" fill="#f1f5f9"/>
+<text x="150.0" y="545" class="cd-st">«Entity» seat_inventory</text>
+<text x="150.0" y="563" class="cd-n">SeatInventory</text>
+<text x="30" y="588" class="cd-m">status : SeatStatus</text>
+<text x="30" y="605" class="cd-m">currentBookingId, lockedUntil</text>
+<text x="30" y="622" class="cd-m">version</text>
+<rect x="310" y="530" width="230" height="69" rx="8" fill="#ffffff" stroke="#475569" stroke-width="2"/>
+<path d="M311 570 H539" stroke="#475569" stroke-width="1.2"/>
+<rect x="311" y="531" width="228" height="39" rx="7" fill="#f1f5f9"/>
+<text x="425.0" y="545" class="cd-st">«Entity» processed_event</text>
+<text x="425.0" y="563" class="cd-n">ProcessedEvent</text>
+<text x="320" y="588" class="cd-m">eventKey, processedAt</text>
+<rect x="580" y="530" width="220" height="86" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="2"/>
+<path d="M581 570 H799" stroke="#64748b" stroke-width="1.2"/>
+<rect x="581" y="531" width="218" height="39" rx="7" fill="#f8fafc"/>
+<text x="690.0" y="545" class="cd-st">«enum»</text>
+<text x="690.0" y="563" class="cd-n">SeatStatus</text>
+<text x="590" y="588" class="cd-m">AVAILABLE · LOCKED</text>
+<text x="590" y="605" class="cd-m">RESERVED</text>
+<text x="20" y="680" class="lbl dim" text-anchor="start">also: KafkaConfig (DefaultErrorHandler, DLT topics, JpaTransactionManager) · OpenApiConfig</text>
+</svg>
+      </div>
+
+      <h3>payment-service</h3>
+      <div class="diagram">
+<svg viewBox="0 0 1000 470" role="img" aria-labelledby="dCP-t">
+<title id="dCP-t">payment-service class diagram</title>
+<path d="M145 106 L145 180" class="flow solid thin"/>
+<path d="M270 214 L520 214" class="flow solid thin"/>
+<path d="M645 106 L645 180" class="flow solid thin"/>
+<path d="M145 266 L145 340" class="flow solid thin"/>
+<path d="M270 383 L340 374" class="flow solid thin"/>
+<rect x="20" y="20" width="250" height="86" rx="8" fill="#ffffff" stroke="#1d6cf2" stroke-width="2"/>
+<path d="M21 60 H269" stroke="#1d6cf2" stroke-width="1.2"/>
+<rect x="21" y="21" width="248" height="39" rx="7" fill="#eff6ff"/>
+<text x="145.0" y="35" class="cd-st">«KafkaListener» seat-reserved-topic</text>
+<text x="145.0" y="53" class="cd-n">SeatReserveEventConsumer</text>
+<text x="30" y="78" class="cd-m">consume(evt, ack)</text>
+<text x="30" y="95" class="cd-m">reserved=false → skip</text>
+<rect x="520" y="20" width="250" height="86" rx="8" fill="#ffffff" stroke="#1d6cf2" stroke-width="2"/>
+<path d="M521 60 H769" stroke="#1d6cf2" stroke-width="1.2"/>
+<rect x="521" y="21" width="248" height="39" rx="7" fill="#eff6ff"/>
+<text x="645.0" y="35" class="cd-st">«RestController» dev profile</text>
+<text x="645.0" y="53" class="cd-n">FailureSimulatorController</text>
+<text x="530" y="78" class="cd-m">GET getMode()</text>
+<text x="530" y="95" class="cd-m">POST setMode(mode)</text>
+<rect x="790" y="20" width="190" height="69" rx="8" fill="#ffffff" stroke="#ef4444" stroke-width="2"/>
+<path d="M791 60 H979" stroke="#ef4444" stroke-width="1.2"/>
+<rect x="791" y="21" width="188" height="39" rx="7" fill="#fef2f2"/>
+<text x="885.0" y="35" class="cd-st">«KafkaListener» *-dlt</text>
+<text x="885.0" y="53" class="cd-n">DeadLetterListener</text>
+<text x="800" y="78" class="cd-m">consumeFailedRecord()</text>
+<rect x="20" y="180" width="250" height="86" rx="8" fill="#ffffff" stroke="#10a37f" stroke-width="2"/>
+<path d="M21 220 H269" stroke="#10a37f" stroke-width="1.2"/>
+<rect x="21" y="181" width="248" height="39" rx="7" fill="#ecfdf5"/>
+<text x="145.0" y="195" class="cd-st">«Service»</text>
+<text x="145.0" y="213" class="cd-n">PaymentService</text>
+<text x="30" y="238" class="cd-m">processPayment(evt)</text>
+<text x="30" y="255" class="cd-m">amount &gt; 2000 → failure event</text>
+<rect x="520" y="180" width="250" height="86" rx="8" fill="#ffffff" stroke="#8b5cf6" stroke-width="2"/>
+<path d="M521 220 H769" stroke="#8b5cf6" stroke-width="1.2"/>
+<rect x="521" y="181" width="248" height="39" rx="7" fill="#f5f3ff"/>
+<text x="645.0" y="195" class="cd-st">«Component»</text>
+<text x="645.0" y="213" class="cd-n">FailureSimulator</text>
+<text x="530" y="238" class="cd-m">maybeFail(bookingId)</text>
+<text x="530" y="255" class="cd-m">Mode: NONE FLAKY TRANSIENT POISON</text>
+<rect x="20" y="340" width="250" height="86" rx="8" fill="#ffffff" stroke="#8b5cf6" stroke-width="2"/>
+<path d="M21 380 H269" stroke="#8b5cf6" stroke-width="1.2"/>
+<rect x="21" y="341" width="248" height="39" rx="7" fill="#f5f3ff"/>
+<text x="145.0" y="355" class="cd-st">«Component»</text>
+<text x="145.0" y="373" class="cd-n">PaymentEventsProducer</text>
+<text x="30" y="398" class="cd-m">publishPaymentSuccessEvent()</text>
+<text x="30" y="415" class="cd-m">publishPaymentFailureEvent()</text>
+<rect x="340" y="340" width="210" height="69" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 4"/>
+<path d="M341 380 H549" stroke="#94a3b8" stroke-width="1.2"/>
+<rect x="341" y="341" width="208" height="39" rx="7" fill="#ffffff"/>
+<text x="445.0" y="355" class="cd-st">spring-kafka</text>
+<text x="445.0" y="373" class="cd-n">KafkaTemplate</text>
+<text x="350" y="398" class="cd-m">send() · in listener tx</text>
+<text x="600" y="380" class="lbl bad" text-anchor="start">throws PoisonMessageException (→ DLT)</text>
+<text x="600" y="400" class="lbl warn" text-anchor="start">or PaymentServiceException (→ retry)</text>
+<text x="20" y="460" class="lbl dim" text-anchor="start">also: KafkaConfig (DefaultErrorHandler, DLT topic) · OpenApiConfig</text>
+</svg>
+      </div>
+
+      <h3>movie-booking-commons (shared library)</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Class</th><th>Type</th><th>Used by</th></tr></thead>
+        <tbody>
+          <tr><td><code>BookingCreatedEvent</code>, <code>SeatReservedEvent</code>, <code>BookingPaymentEvent</code></td><td>records (event contracts)</td><td>all services: published and consumed as JSON</td></tr>
+          <tr><td><code>BookingRequest</code>, <code>BookingResponse</code></td><td>records (REST DTOs)</td><td>booking-service</td></tr>
+          <tr><td><code>KafkaConfigProperties</code></td><td>constants: topics, groups, <code>DLT_SUFFIX</code></td><td>all services</td></tr>
+          <tr><td><code>PoisonMessageException</code></td><td>exception: not retryable, goes straight to the DLT</td><td>all services</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- ============================================================ 15 -->
+    <section id="load-simulator">
+      <h2><span class="num">15</span>Concurrency demo: BookingLoadSimulator</h2>
+      <p>A scheduler in booking-service (<code>simulator/BookingLoadSimulator</code>) that stages a <b>rush</b>: 10–15 people trying to book the same few seats at the same moment. Requests are built from real data: show and seats come from seat-inventory's API, while users, amounts and Idempotency-Keys are random. Some users get <b>errors on purpose</b>, which are retried 3 times and then sent to a DLT. The result proves the system never confirms one seat twice.</p>
+
+      <div class="diagram">
+        <svg viewBox="0 0 1000 500" role="img" aria-labelledby="dSim-t">
+          <title id="dSim-t">BookingLoadSimulator: fetch seats, concurrent rush with retries, DLT for failures, result report</title>
+          <rect x="20" y="30" width="240" height="72" class="box" stroke="#1d6cf2"/>
+          <text x="140" y="52" class="box-s">«Scheduled» 20s, then every 5m</text>
+          <text x="140" y="72" class="box-t">BookingLoadSimulator</text>
+          <text x="140" y="90" class="box-s">booking-service</text>
+
+          <rect x="360" y="30" width="270" height="72" class="box" stroke="#10a37f"/>
+          <text x="495" y="58" class="box-t">seat-inventory-service</text>
+          <text x="495" y="78" class="box-s">GET /seats?status=AVAILABLE</text>
+
+          <rect x="20" y="170" width="240" height="64" class="box" stroke="#8b5cf6"/>
+          <text x="140" y="196" class="box-t">gate · CountDownLatch</text>
+          <text x="140" y="216" class="box-s">10–15 virtual threads</text>
+
+          <rect x="300" y="140" width="120" height="26" rx="6" fill="#eff6ff" stroke="#1d6cf2"/><text x="360" y="157" class="box-s" style="fill:#0f172a">John-1 · A2</text>
+          <rect x="300" y="174" width="120" height="26" rx="6" fill="#eff6ff" stroke="#1d6cf2"/><text x="360" y="191" class="box-s" style="fill:#0f172a">Kushi-2 · A2</text>
+          <rect x="300" y="208" width="120" height="26" rx="6" fill="#fffbeb" stroke="#d97706"/><text x="360" y="225" class="box-s" style="fill:#0f172a">Ravi-3 · 503</text>
+          <rect x="300" y="242" width="120" height="26" rx="6" fill="#eff6ff" stroke="#1d6cf2"/><text x="360" y="259" class="box-s" style="fill:#0f172a">… Sita-12</text>
+
+          <rect x="700" y="165" width="280" height="72" class="box" stroke="#1d6cf2"/>
+          <text x="840" y="190" class="box-t">booking-service API</text>
+          <text x="840" y="210" class="box-s">POST /bookSeat + Idempotency-Key</text>
+          <text x="840" y="226" class="box-s">→ saga (sections 3–6)</text>
+
+          <rect x="400" y="310" width="300" height="64" class="box" stroke="#d97706"/>
+          <text x="550" y="334" class="box-t">retry? 5xx · 408 · 409 · 429 · I/O</text>
+          <text x="550" y="354" class="box-s">3 retries: 1s → 2s → 4s · same key</text>
+
+          <use href="#topic-dlt" x="465" y="412" width="170" height="58"/>
+          <text x="550" y="490" class="lbl bad" text-anchor="middle">booking-request-dlt</text>
+
+          <rect x="760" y="412" width="220" height="58" class="box" stroke="#ef4444"/>
+          <text x="870" y="436" class="box-t">DeadLetterListener</text>
+          <text x="870" y="455" class="box-s">logs FailedBookingRequest</text>
+
+          <rect x="20" y="310" width="330" height="72" class="box" stroke="#22c55e"/>
+          <text x="185" y="334" class="box-t">RESULT report (after 45s)</text>
+          <text x="185" y="353" class="box-s">GET /bookings/{id} for every booking</text>
+          <text x="185" y="370" class="lbl ok" text-anchor="middle">✓ no seat confirmed twice</text>
+
+          <path d="M262 66 L356 66" class="flow solid"/>
+          <path d="M140 104 L140 166" class="flow solid"/>
+          <path d="M262 196 L296 153" class="flow solid thin"/>
+          <path d="M262 200 L296 187" class="flow solid thin"/>
+          <path d="M262 206 L296 221" class="flow solid thin"/>
+          <path d="M262 212 L296 255" class="flow solid thin"/>
+          <path d="M422 153 L696 192" class="flow solid thin"/>
+          <path d="M422 187 L696 198" class="flow solid thin"/>
+          <path d="M422 221 L696 205" class="flow solid thin"/>
+          <path d="M422 255 L696 212" class="flow solid thin"/>
+          <path d="M840 239 L704 318" class="flow solid r"/>
+          <path d="M600 308 L700 232" class="flow y"/>
+          <path d="M550 376 L550 408" class="flow solid r"/>
+          <path d="M637 441 L756 441" class="flow solid"/>
+          <path d="M140 236 L140 306" class="flow"/>
+
+          <g class="nb"><circle cx="308" cy="66" r="13"/><text x="308" y="66">1</text></g>
+          <text x="308" y="48" class="lbl dim" text-anchor="middle">available seats</text>
+          <g class="nb"><circle cx="140" cy="135" r="13"/><text x="140" y="135">2</text></g>
+          <text x="158" y="140" class="lbl dim" text-anchor="start">1 show · 3 seats</text>
+          <g class="nb"><circle cx="560" cy="196" r="13"/><text x="560" y="196">3</text></g>
+          <text x="560" y="140" class="lbl" text-anchor="middle">all released at once</text>
+          <g class="nb y"><circle cx="772" cy="278" r="13"/><text x="772" y="278">4</text></g>
+          <text x="790" y="290" class="lbl bad" text-anchor="start">error (503 / 400)</text>
+          <text x="612" y="270" class="lbl warn" text-anchor="end">retry, same key</text>
+          <g class="nb y"><circle cx="550" cy="392" r="13"/><text x="550" y="392">5</text></g>
+          <text x="568" y="397" class="lbl dim" text-anchor="start">gave up / not retryable</text>
+          <g class="nb y"><circle cx="697" cy="441" r="13"/><text x="697" y="441">6</text></g>
+          <g class="nb"><circle cx="140" cy="271" r="13"/><text x="140" y="271">7</text></g>
+          <text x="158" y="290" class="lbl dim" text-anchor="start">after 45s</text>
+        </svg>
+      </div>
+
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>What happens</th></tr></thead>
+        <tbody>
+          <tr><td class="n"><span class="badge-n">1</span></td><td><b>Trigger:</b> <code>@Scheduled</code>, the first rush 20s after startup and then every 5 minutes, automatically while <code>booking.simulator.enabled=true</code>. It fetches AVAILABLE seats from seat-inventory over HTTP. It doesn't read <code>seat_inventory_db</code>, which belongs to another service (<a href="#db-per-service">7.8</a>).</td></tr>
+          <tr><td class="n"><span class="badge-n">2</span></td><td>It picks one random show and 3 of its seats (the contested pool). For each of 10–15 people it builds a request with a random name (<code>John-3</code>), one contested seat, a random amount of 300–2500 (so about 1 in 5 payments fail), a new Idempotency-Key, and a chaos mode.</td></tr>
+          <tr><td class="n"><span class="badge-n">3</span></td><td>Every person waits on a <code>CountDownLatch</code> on their own virtual thread. <code>countDown()</code> releases all <code>POST /bookSeat</code> calls at the same instant, so several requests really race for the same seat.</td></tr>
+          <tr><td class="n"><span class="badge-n y">4</span></td><td><b>Errors and retry:</b> a retryable error (5xx, 408, 409, 429, I/O) is retried up to <b>3 times</b> after 1s, 2s and 4s, always with the <b>same Idempotency-Key</b>. A non-retryable one (400, 404, 422) isn't retried.</td></tr>
+          <tr><td class="n"><span class="badge-n y">5</span></td><td><b>Gave up:</b> a <code>FailedBookingRequest</code> (user, show, seats, amount, Idempotency-Key, attempts, last error, reason, chaos, time) is published to <code>booking-request-dlt</code> in its own Kafka transaction, keyed by the Idempotency-Key.</td></tr>
+          <tr><td class="n"><span class="badge-n y">6</span></td><td><code>DeadLetterListener.consumeFailedBookingRequest</code> logs every record of <code>booking-request-dlt</code>.</td></tr>
+          <tr><td class="n"><span class="badge-n">7</span></td><td>After <code>settle-time</code> (45s) it calls <code>GET /bookings/{id}</code> for every booking and logs a <b>RESULT</b> table (user, seat, amount, chaos, attempts, final status) with totals. For each seat it checks that at most one person got CONFIRMED; a second winner would be logged as <code>DOUBLE BOOKING!</code>.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Chaos modes (injected errors)</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Mode</th><th>Share</th><th>What happens</th><th>Expected outcome</th></tr></thead>
+        <tbody>
+          <tr><td><code>NONE</code></td><td>~60%</td><td>Normal request</td><td>CONFIRMED (won the seat), or FAILED (seat already taken, or payment &gt; 2000 declined)</td></tr>
+          <tr><td><code>FLAKY_503</code></td><td>~15%</td><td>503 on attempts 1 and 2, then a real call</td><td class="ok-t">Recovered by retry on attempt 3</td></tr>
+          <tr><td><code>ALWAYS_503</code></td><td>~15%</td><td>503 on every attempt</td><td class="warn-t">1 try + 3 retries → <code>booking-request-dlt</code></td></tr>
+          <tr><td><code>BAD_REQUEST</code></td><td>~10%</td><td>Real call <b>without</b> Idempotency-Key → real <b>400</b> from <code>GlobalExceptionHandler</code></td><td class="bad-t">Not retryable → <code>booking-request-dlt</code> at once</td></tr>
+        </tbody>
+      </table></div>
+      <p class="muted">The 503s are injected inside the simulator (as if a load balancer rejected the call) and never reach the service; the 400 is real. Set <code>booking.simulator.chaos=false</code> for a clean rush.</p>
+
+      <h3>Same rules as the Kafka side</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th></th><th>Kafka consumers (<a href="#retry-dlt">7.4</a>)</th><th>HTTP calls (simulator)</th></tr></thead>
+        <tbody>
+          <tr><td>Transient</td><td>Retry 3× with backoff 1s, 2s, 4s</td><td>Retry 3× with backoff 1s, 2s, 4s</td></tr>
+          <tr><td>Permanent / poison</td><td>Straight to <code>&lt;topic&gt;-dlt</code></td><td>Straight to <code>booking-request-dlt</code></td></tr>
+          <tr><td>Duplicates on retry</td><td><code>processed_event</code> idempotency</td><td>Same Idempotency-Key on every attempt</td></tr>
+          <tr><td>Who reads the DLT</td><td><code>DeadLetterListener</code></td><td><code>DeadLetterListener</code></td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Sample log</h3>
+<pre><code>RUSH - 12 people booking SHOW_202 seats [B2, B1, B3] at the same moment
+Ravi-4  attempt 1/4 failed: 503 Simulated 503 (FLAKY_503) -&gt; retry in 1000 ms
+Ravi-4  attempt 2/4 failed: 503 Simulated 503 (FLAKY_503) -&gt; retry in 2000 ms
+Ravi-4  succeeded on attempt 3/4
+Neha-7  gave up (retries exhausted after 4 attempts): 503 … -&gt; booking-request-dlt
+Sita-9  gave up (not retryable): 400 Bad Request -&gt; booking-request-dlt
+DLT booking request booking-request-dlt-1@0 | idempotencyKey=… | value={"userId":"Neha-7",…,"attempts":4,…}
+RESULT for SHOW_202 {CONFIRMED=3, DLT=3, FAILED=6}
+  Ravi-4  seat B2 amount 1200 chaos FLAKY_503  attempts 3 -&gt; CONFIRMED  …
+  Neha-7  seat B1 amount  900 chaos ALWAYS_503 attempts 4 -&gt; DLT        503 Service Unavailable
+seat B2 -&gt; [Ravi-4] (only one winner)
+✓ no seat was confirmed twice</code></pre>
+      <p class="muted">Illustrative output; exact numbers differ every run.</p>
+
+      <div class="callout warn"><b>Seats run out</b>There are 15 seats and each rush can take up to 3, so after 3–4 rushes it logs "No AVAILABLE seats left" and skips until you reset them (SQL in <a href="#run">10</a>). That's why the simulator is off by default.</div>
+    </section>
+  </main>
+</div>
+</body>
+</html>

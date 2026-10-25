@@ -5,6 +5,7 @@ import com.javatechie.events.BookingCreatedEvent;
 import com.javatechie.service.SeatInventoryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 import static com.javatechie.common.KafkaConfigProperties.MOVIE_BOOKING_EVENTS_TOPIC;
@@ -22,9 +23,10 @@ public class SeatInventoryListener {
     }
 
     @KafkaListener(topics = MOVIE_BOOKING_EVENTS_TOPIC, groupId = SEAT_EVENT_GROUP)
-    public void consumeBookingEvents(BookingCreatedEvent event) {
+    public void consumeBookingEvents(BookingCreatedEvent event, Acknowledgment ack) {
         // Logic to update seat inventory based on booking event
         log.info("SeatInventoryListener:: Consuming bookingCreated event for bookingId {}", event.bookingId());
         seatInventoryService.handleBooking(event);
+        ack.acknowledge();
     }
 }

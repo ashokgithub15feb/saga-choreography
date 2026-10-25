@@ -1,9 +1,10 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/javatechie
+    # database per service: only booking-service uses booking_db (created on first start if missing)
+    url: jdbc:mysql://localhost:3306/booking_db?createDatabaseIfNotExist=true
     username: root
-    password: Password
+    password: root
 
   jpa:
     show-sql: true
@@ -16,13 +17,68 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:lkc-w76xqmg.ap-south-1.aws.public.confluent.cloud:9092}
+    # Confluent Cloud only accepts SASL_SSL with an API key/secret (create one under the cluster's "API Keys").
+    # spring.kafka.properties.* applies to the producer, consumer and admin clients.
+    properties:
+      security.protocol: SASL_SSL
+      sasl.mechanism: PLAIN
+      sasl.jaas.config: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="${CONFLUENT_API_KEY}" password="${CONFLUENT_API_SECRET}";'
+      client.dns.lookup: use_all_dns_ips
+      session.timeout.ms: 45000
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      # Kafka transactions: makes the producer transactional + idempotent (exactly-once within Kafka).
+      # Spring Boot then auto-creates a KafkaTransactionManager and plugs it into the listener container.
+      # Prefix must be unique per running instance, hence the random part.
+      transaction-id-prefix: booking-tx-${random.uuid}
+      acks: all
     consumer:
       group-id: booking-event-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      # offsets are committed by the container (inside the Kafka transaction), never auto-committed
+      enable-auto-commit: false
+      # only read messages from committed transactions (aborted/in-flight writes are skipped)
+      isolation-level: read-committed
+      # ErrorHandlingDeserializer wraps JsonDeserializer: unreadable JSON (poison pill) becomes a
+      # DeserializationException handed to the error handler -> DLT, instead of an endless poll loop
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
         spring.json.trusted.packages: "*"
+    listener:
+      # listeners receive an Acknowledgment and call acknowledge() after successful processing
+      ack-mode: manual
+
+# Saga timeout: a booking still PENDING after this is FAILED (keep it well above seat.lock.ttl of seat-inventory)
+booking:
+  pending-timeout: PT15M
+  pending-sweep-interval: PT1M
+  # Concurrency demo (BookingLoadSimulator): 10-15 people rush for the same few seats at once.
+  # Off by default, every rush uses up seats. Turn on with --booking.simulator.enabled=true
+  simulator:
+    enabled: false
+    initial-delay: PT20S              # first rush after startup
+    interval: PT5M                    # then every 5 minutes
+    min-users: 10
+    max-users: 15
+    contested-seats: 3                # seats of one show that everybody fights for
+    settle-time: PT45S                # wait for the saga before reading the results
+    chaos: true                       # some users get a 503 (flaky / always) or send a bad request (400)
+    max-retries: 3                    # transient errors (5xx, 408, 409, 429, I/O) retried 3 times...
+    retry-backoff: PT1S               # ...after 1s, 2s, 4s; then the request goes to booking-request-dlt
+    booking-url: http://localhost:${server.port}
+    seat-inventory-url: http://localhost:9292
+
+# Transactional outbox relay
+outbox:
+  poll-interval: PT1S      # how often unsent events are pushed to Kafka
+  retention: P7D           # sent rows are deleted after this
+  cleanup-interval: PT1H
+
+# Publish OpenAPI 3.0 (springdoc 2.8 defaults to 3.1): readable by every Swagger UI / client generator,
+# including a Swagger UI 4.x the browser may still have cached from springdoc 2.0.4
+springdoc:
+  api-docs:
+    version: openapi_3_0

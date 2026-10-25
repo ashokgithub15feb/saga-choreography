@@ -5,6 +5,7 @@ import com.javatechie.events.BookingPaymentEvent;
 import com.javatechie.service.SeatInventoryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 import static com.javatechie.common.KafkaConfigProperties.PAYMENT_EVENTS_TOPIC;
@@ -22,16 +23,18 @@ public class PaymentStatusListener {
     }
 
     @KafkaListener(topics = PAYMENT_EVENTS_TOPIC, groupId = SEAT_EVENT_GROUP)
-    public void consumePaymentStatusEvents(BookingPaymentEvent event) {
+    public void consumePaymentStatusEvents(BookingPaymentEvent event, Acknowledgment ack) {
      log.info("PaymentStatusListener:: Consuming Booking payment status event {}", event.bookingId());
 
 
      if(event.paymentCompleted()){
-         log.info("Payment status succeeded for bookingId: {}", event.bookingId());
+         log.info("✅ Payment status succeeded for bookingId: {}, reserving seats.", event.bookingId());
+         service.confirmSeatsOnPaymentSuccess(event.bookingId());
      }else{
-         log.info("Payment failed for bookingId: {}, releasing seats.", event.bookingId());
+         log.info("❌ Payment failed for bookingId: {}, releasing seats.", event.bookingId());
          service.releaseSeatsOnPaymentFailure(event.bookingId());
      }
+     ack.acknowledge();
 
     }
 }

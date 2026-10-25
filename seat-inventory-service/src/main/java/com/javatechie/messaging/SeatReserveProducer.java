@@ -19,12 +19,9 @@ public class SeatReserveProducer {
         this.template = template;
     }
 
+    // No try/catch: a failed send must abort the listener's Kafka transaction (and be retried), not be swallowed
     public void publishSeatReserveEvents(SeatReservedEvent reservedEvent) {
-        try {
-            log.info("SeatReserveProducer:: Publishing seatReserved event for bookingId {}", reservedEvent.bookingId());
-            template.send(SEAT_RESERVED_TOPIC,reservedEvent.bookingId(), reservedEvent);
-        } catch (Exception e) {
-            log.error("SeatReserveProducer:: Error while publishing seatReserved event for bookingId {}: {}", reservedEvent.bookingId(), e.getMessage());
-        }
+        log.info("SeatReserveProducer:: Publishing seatReserved event for bookingId {}", reservedEvent.bookingId());
+        template.send(SEAT_RESERVED_TOPIC,reservedEvent.bookingId(), reservedEvent);
     }
 }

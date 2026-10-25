@@ -7,6 +7,6 @@ public class EntityToBookingResponseMapper {
 
     public static BookingResponse map(Booking booking) {
         return new BookingResponse(booking.getBookingCode(),
-                booking.getStatus());
+                booking.getStatus().name());
     }
 }
