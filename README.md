@@ -2,6 +2,8 @@
 
 Movie seat booking with the **Saga pattern (choreography)** on Kafka: three Spring Boot 3.5 / Java 21 services, each with its own local transaction, coordinated only through events.
 
+> **Credit:** based on Java Techie's tutorial project [Java-Techie-jt/saga-choreography](https://github.com/Java-Techie-jt/saga-choreography) (Basant Kumar Hota). This fork extends it with Kafka transactions, retry/DLT handling, an outbox, idempotency, optimistic locking, saga timeouts, database per service and the design docs.
+
 Full design document with flow diagrams, a worked example, ER and class diagrams, failure scenarios and interview Q&A: **[docs/SAGA_DESIGN.html](docs/SAGA_DESIGN.html)** (open it in a browser).
 
 | Service | Port | Database | Role |
