@@ -29,7 +29,7 @@ public class BookingEventProducer {
     }
 
     // MANDATORY: writing an outbox row outside the business transaction would defeat the pattern
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.MANDATORY) //Support a current transaction, throw an exception if none exists
     public void publishBookingEvents(BookingCreatedEvent createdEvent) {
         log.info("Saving booking event to outbox for id : {}", createdEvent.bookingId());
         try {
